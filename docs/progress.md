@@ -36,6 +36,21 @@
 - CLI 예제 추가
 - 기본 `go test ./...`는 외부 API 없이 통과
 
+## Chapter 04. Tool Calling
+
+상태: 완료
+
+완료 기준:
+
+- 실제 계산을 수행하는 safe `calculator` invokable tool 구현
+- `ChatModel.WithTools`로 model에 `schema.ToolInfo` 전달
+- model이 생성한 `schema.ToolCall`을 `schema.ToolMessage`로 실행하는 helper 구현
+- tool result를 history에 붙이고 model final answer를 다시 생성하는 `AskWithTools` 구현
+- Eino `compose.ToolsNode` 기반 tool 실행 테스트 추가
+- OpenAI ChatModel 기반 CLI 예제 추가
+- OpenAI tool calling integration test 추가
+- 기본 `go test ./...`는 외부 API 없이 통과
+
 ## 다음 작업
 
-- Chapter 04에서 Tool Calling을 fake 기반으로 먼저 다룹니다.
+- Chapter 05에서 Chain 구성을 다룹니다.
