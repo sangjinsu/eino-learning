@@ -20,7 +20,23 @@
 
 ## Chapter 02 이후 로드맵
 
-- Chapter 02: Prompt Template과 Message 설계
+## Chapter 02. Prompt Template과 Message 설계
+
+목표:
+
+- Eino의 `ChatTemplate`이 변수를 message 목록으로 바꾸는 흐름을 이해합니다.
+- system prompt, optional history, user question 순서의 message 설계를 테스트합니다.
+- fake ChatModel로 template 결과가 model 입력에 전달되는지 검증합니다.
+
+완료 기준:
+
+- `internal/llm`에 기본 ChatTemplate이 있습니다.
+- `ChatService`가 `AskWithHistory`로 history를 받을 수 있습니다.
+- `cmd/ch02-prompt-template` 예제가 외부 API 없이 실행됩니다.
+- `go test ./...`가 통과합니다.
+
+## Chapter 03 이후 로드맵
+
 - Chapter 03: OpenAI ChatModel 연동, opt-in integration test
 - Chapter 04: Tool Calling
 - Chapter 05: Chain 구성
