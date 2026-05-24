@@ -62,3 +62,45 @@ go test ./...
 다음 장에서 할 일:
 
 - Chapter 03에서 OpenAI ChatModel을 `RUN_EINO_INTEGRATION=1` 기반 opt-in integration test로 연동합니다.
+
+## Chapter 03. OpenAI ChatModel 연동
+
+이번 장의 목표:
+
+- Eino extension의 OpenAI ChatModel을 `ChatService`에 주입합니다.
+- `.env` 또는 환경 변수의 `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_BASE_URL`로 provider 설정을 분리합니다.
+- 실제 API 호출은 `RUN_EINO_INTEGRATION=1`일 때만 실행되게 만듭니다.
+
+핵심 개념:
+
+- `internal/llm`은 fake model과 OpenAI model 모두를 `model.BaseChatModel`로 다룹니다.
+- 기본 모델명은 `.env.example`과 같은 `gpt-4.1-mini`입니다.
+- 설정 우선순위는 shell 환경 변수, repo root `.env`, 코드 기본값 순서입니다.
+- unit test는 API를 호출하지 않고, integration test만 opt-in으로 실제 OpenAI API를 호출합니다.
+
+`.env` 예시:
+
+```env
+OPENAI_API_KEY=your-api-key
+OPENAI_MODEL=gpt-4.1-mini
+OPENAI_BASE_URL=
+RUN_EINO_INTEGRATION=1
+```
+
+기본 실행 명령:
+
+```bash
+go run ./cmd/ch03-openai-chatmodel 'What does Eino ChatModel do?'
+```
+
+integration test:
+
+```bash
+go test ./internal/llm -run TestOpenAIChatModelIntegration -count=1 -v
+```
+
+외부 API 없이 전체 테스트:
+
+```bash
+RUN_EINO_INTEGRATION=0 go test ./...
+```
