@@ -18,8 +18,6 @@
 - `cmd/ch01-chatmodel` 예제가 외부 API 없이 실행됩니다.
 - `go test ./...`가 통과합니다.
 
-## Chapter 02 이후 로드맵
-
 ## Chapter 02. Prompt Template과 Message 설계
 
 목표:
@@ -35,9 +33,24 @@
 - `cmd/ch02-prompt-template` 예제가 외부 API 없이 실행됩니다.
 - `go test ./...`가 통과합니다.
 
-## Chapter 03 이후 로드맵
+## Chapter 03. OpenAI ChatModel 연동
 
-- Chapter 03: OpenAI ChatModel 연동, opt-in integration test
+목표:
+
+- Eino extension의 OpenAI ChatModel을 생성하는 방법을 이해합니다.
+- fake ChatModel과 실제 OpenAI ChatModel이 같은 `model.BaseChatModel` 경계로 교체되는 구조를 확인합니다.
+- 실제 API 호출을 opt-in integration test로 분리합니다.
+
+완료 기준:
+
+- `internal/llm`에 OpenAI ChatModel factory가 있습니다.
+- `.env` 또는 환경 변수 기반 `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_BASE_URL` config가 있습니다.
+- `RUN_EINO_INTEGRATION=1`일 때만 실제 API 호출 test가 실행됩니다.
+- `cmd/ch03-openai-chatmodel` 예제가 기본 실행에서는 API를 호출하지 않습니다.
+- 기본 `go test ./...`가 외부 API 없이 통과합니다.
+
+## Chapter 04 이후 로드맵
+
 - Chapter 04: Tool Calling
 - Chapter 05: Chain 구성
 - Chapter 06: Graph 구성
