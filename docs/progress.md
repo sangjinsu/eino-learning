@@ -51,6 +51,20 @@
 - OpenAI tool calling integration test 추가
 - 기본 `go test ./...`는 외부 API 없이 통과
 
+## Chapter 05. Chain 구성
+
+상태: 완료
+
+완료 기준:
+
+- `compose.NewChain`으로 `ChatTemplate -> ChatModel` 선형 pipeline 구현
+- compiled `Runnable`을 사용하는 `ChatChainService` 구현
+- history가 Chain 입력 변수로 전달되는지 테스트
+- blank question이 Chain 실행 전에 거부되는지 테스트
+- OpenAI ChatModel 기반 `cmd/ch05-chain` 예제 추가
+- OpenAI Chain integration test 추가
+- 기본 `go test ./...`는 외부 API 없이 통과
+
 ## 다음 작업
 
-- Chapter 05에서 Chain 구성을 다룹니다.
+- Chapter 06에서 Graph 구성을 다룹니다.

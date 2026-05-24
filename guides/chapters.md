@@ -67,9 +67,24 @@
 - Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
 - `go test ./...`가 통과합니다.
 
-## Chapter 05 이후 로드맵
+## Chapter 05. Chain 구성
 
-- Chapter 05: Chain 구성
+목표:
+
+- Eino의 `compose.NewChain`이 component를 선형 pipeline으로 묶는 방식을 이해합니다.
+- `ChatTemplate -> ChatModel` 흐름을 compiled `Runnable`로 실행합니다.
+- 기존 manual service 호출과 Chain 기반 호출의 차이를 테스트로 비교합니다.
+
+완료 기준:
+
+- `internal/llm`에 `ChatChainService`가 있습니다.
+- Chain은 `map[string]any -> ChatTemplate -> ChatModel -> *schema.Message` 흐름입니다.
+- `cmd/ch05-chain` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel 기반 Chain을 실행합니다.
+- Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
+- `go test ./...`가 통과합니다.
+
+## Chapter 06 이후 로드맵
+
 - Chapter 06: Graph 구성
 - Chapter 07: Streaming
 - Chapter 08: Callback과 Observability
