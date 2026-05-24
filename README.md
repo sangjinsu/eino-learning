@@ -32,3 +32,33 @@ go test ./...
 
 - Chapter 02에서 system/user/assistant message와 prompt template을 구조화합니다.
 - OpenAI 실제 연동은 Chapter 03에서 `RUN_EINO_INTEGRATION=1` 기반 integration test로 분리합니다.
+
+## Chapter 02. Prompt Template과 Message 설계
+
+이번 장의 목표:
+
+- Eino의 `prompt.ChatTemplate`이 변수를 `[]*schema.Message`로 바꾸는 흐름을 이해합니다.
+- system prompt, optional chat history, user question 순서의 message 설계를 테스트합니다.
+- `ChatService`가 template으로 만든 message를 `ChatModel.Generate`에 전달하게 만듭니다.
+
+핵심 개념:
+
+- `prompt.FromMessages(schema.FString, ...)`는 message template 목록을 만듭니다.
+- `schema.MessagesPlaceholder("history", true)`는 history가 없을 때 빈 message 목록으로 처리합니다.
+- fake model의 `LastInput`으로 실제 모델에 들어간 role/content 순서를 검증합니다.
+
+실행 명령:
+
+```bash
+go run ./cmd/ch02-prompt-template 'How does ChatTemplate work?'
+```
+
+테스트 명령:
+
+```bash
+go test ./...
+```
+
+다음 장에서 할 일:
+
+- Chapter 03에서 OpenAI ChatModel을 `RUN_EINO_INTEGRATION=1` 기반 opt-in integration test로 연동합니다.

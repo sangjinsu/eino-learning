@@ -58,14 +58,11 @@ func TestChatModelGenerateRejectsBlankLastUserMessage(t *testing.T) {
 	}
 }
 
-func TestChatModelStreamAndBindToolsAreUnsupported(t *testing.T) {
+func TestChatModelStreamIsUnsupported(t *testing.T) {
 	chatModel := NewChatModel("unused")
 	input := []*schema.Message{schema.UserMessage("hello")}
 
 	if _, err := chatModel.Stream(context.Background(), input); err == nil || !strings.Contains(err.Error(), "not supported") {
 		t.Fatalf("Stream error = %v, want not supported error", err)
-	}
-	if err := chatModel.BindTools(nil); err == nil || !strings.Contains(err.Error(), "not supported") {
-		t.Fatalf("BindTools error = %v, want not supported error", err)
 	}
 }

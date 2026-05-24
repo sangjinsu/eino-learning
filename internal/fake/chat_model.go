@@ -20,7 +20,7 @@ type ChatModel struct {
 	lastInput []*schema.Message
 }
 
-var _ model.ChatModel = (*ChatModel)(nil)
+var _ model.BaseChatModel = (*ChatModel)(nil)
 
 func NewChatModel(response string) *ChatModel {
 	return &ChatModel{response: response}
@@ -49,12 +49,6 @@ func (m *ChatModel) Stream(ctx context.Context, input []*schema.Message, opts ..
 	_ = opts
 
 	return nil, ErrNotSupported
-}
-
-func (m *ChatModel) BindTools(tools []*schema.ToolInfo) error {
-	_ = tools
-
-	return ErrNotSupported
 }
 
 func (m *ChatModel) LastInput() []*schema.Message {
