@@ -49,9 +49,26 @@
 - `cmd/ch03-openai-chatmodel` 예제가 기본 실행에서는 API를 호출하지 않습니다.
 - 기본 `go test ./...`가 외부 API 없이 통과합니다.
 
-## Chapter 04 이후 로드맵
+## Chapter 04. Tool Calling
 
-- Chapter 04: Tool Calling
+목표:
+
+- Eino의 tool metadata와 tool 실행 interface를 이해합니다.
+- `ChatModel.WithTools`로 model에게 tool schema를 전달하는 흐름을 확인합니다.
+- model이 생성한 `ToolCall`과 tool 결과인 `ToolMessage`의 연결 방식을 확인합니다.
+- 위험한 시스템 접근 없이 안전한 calculator tool로 실제 tool 실행을 테스트합니다.
+
+완료 기준:
+
+- `internal/tools`에 실제 계산을 수행하는 safe `calculator` tool이 있습니다.
+- Eino `compose.ToolsNode`로 tool call을 실행하는 helper가 있습니다.
+- `internal/llm`에 model -> tool -> model final answer loop를 실행하는 `AskWithTools`가 있습니다.
+- `cmd/ch04-tool-calling` 예제가 `OPENAI_API_KEY`를 읽어 실제 model-backed tool calling을 실행합니다.
+- Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
+- `go test ./...`가 통과합니다.
+
+## Chapter 05 이후 로드맵
+
 - Chapter 05: Chain 구성
 - Chapter 06: Graph 구성
 - Chapter 07: Streaming

@@ -104,3 +104,44 @@ go test ./internal/llm -run TestOpenAIChatModelIntegration -count=1 -v
 ```bash
 RUN_EINO_INTEGRATION=0 go test ./...
 ```
+
+## Chapter 04. Tool Calling
+
+이번 장의 목표:
+
+- Eino의 `tool.InvokableTool`과 `schema.ToolInfo` 역할을 이해합니다.
+- `ChatModel.WithTools`로 model에 tool schema를 전달합니다.
+- model이 생성한 `ToolCall`을 Eino `ToolsNode`로 실행해 `ToolMessage`를 만듭니다.
+- tool 결과를 message history에 붙여 model에게 최종 답변을 다시 요청합니다.
+
+핵심 개념:
+
+- tool은 model에게 보여줄 metadata(`Info`)와 실제 실행 함수(`InvokableRun`)를 함께 가집니다.
+- 이번 장의 `calculator` tool은 `+`, `-`, `*`, `/`, 괄호만 지원하는 안전한 실제 계산 tool입니다.
+- `schema.ToolCall`은 assistant가 요청한 함수 호출이고, `schema.ToolMessage`는 tool 실행 결과입니다.
+- Chapter 4 CLI는 `OPENAI_API_KEY`가 있으면 실제 OpenAI ChatModel로 tool calling loop를 실행합니다.
+- 초반 chapter에서는 shell, 파일 삭제, 배포 같은 위험 tool을 등록하지 않습니다.
+
+실행 명령:
+
+```bash
+go run ./cmd/ch04-tool-calling '12 * (7 + 3)'
+```
+
+`OPENAI_API_KEY`는 shell 환경 변수 또는 repository root의 `.env`에서 읽습니다.
+
+테스트 명령:
+
+```bash
+RUN_EINO_INTEGRATION=0 go test ./internal/llm ./internal/tools
+```
+
+실제 OpenAI tool calling integration test:
+
+```bash
+RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIToolCallingIntegration -count=1 -v
+```
+
+다음 장에서 할 일:
+
+- Chapter 05에서 ChatTemplate, ChatModel, ToolsNode를 Chain으로 연결합니다.
