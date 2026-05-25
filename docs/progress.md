@@ -79,6 +79,20 @@
 - OpenAI Graph integration test 추가
 - 기본 `go test ./...`는 외부 API 없이 통과
 
+## Chapter 07. Streaming
+
+상태: 완료
+
+완료 기준:
+
+- `ChatService.StreamWithHistory`로 `ChatTemplate -> ChatModel.Stream` 흐름 구현
+- `AskStreamingWithHistory`로 stream chunk를 모아 최종 answer 반환
+- Chapter 7용 `fake.StreamingChatModel` 추가
+- blank question이 stream 호출 전에 거부되는지 테스트
+- OpenAI ChatModel 기반 `cmd/ch07-streaming` 예제 추가
+- OpenAI Streaming integration test 추가
+- 기본 `go test ./...`는 외부 API 없이 통과
+
 ## 다음 작업
 
-- Chapter 07에서 Streaming을 다룹니다.
+- Chapter 08에서 Callback과 Observability를 다룹니다.

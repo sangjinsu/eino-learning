@@ -65,3 +65,23 @@ flowchart TD
     model --> output["model_output"]
     output --> END_CHAT([END])
 ```
+
+## Chapter 07
+
+- `ChatModel.Stream`은 완성된 `Generate` 응답 대신 `*schema.StreamReader[*schema.Message]`를 반환합니다.
+- `StreamReader.Recv()`를 반복 호출하면 assistant message chunk가 순서대로 나오고, `io.EOF`가 나오면 stream이 끝난 것입니다.
+- `StreamReader`는 한 번만 읽을 수 있으므로 여러 소비자가 필요하면 읽기 전에 `Copy`를 사용해야 합니다.
+- stream을 다 읽었거나 중간에 중단하더라도 `Close()`를 호출해야 합니다.
+- Chapter 7의 `ChatService.StreamWithHistory`는 `ChatTemplate`이 만든 prompt messages를 `ChatModel.Stream`에 전달합니다.
+- `AskStreamingWithHistory`는 CLI가 아닌 test나 service code에서 쓰기 편하도록 chunk를 모아 `StreamingResult.Answer`를 만듭니다.
+- Unit test는 `fake.StreamingChatModel`로 빠르게 검증하고, 실제 OpenAI 호출은 `RUN_EINO_INTEGRATION=1`일 때만 실행합니다.
+
+```mermaid
+flowchart LR
+    input["질문 + history"] --> template["ChatTemplate"]
+    template --> messages["prompt messages"]
+    messages --> model["ChatModel.Stream"]
+    model --> reader["StreamReader"]
+    reader --> recv["Recv loop"]
+    recv --> answer["chunk를 이어 붙인 answer"]
+```
