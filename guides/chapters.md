@@ -117,9 +117,26 @@
 - Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
 - `go test ./...`가 통과합니다.
 
-## Chapter 07 이후 로드맵
+## Chapter 08. Callback과 Observability
 
-- Chapter 08: Callback과 Observability
+목표:
+
+- Eino callback handler가 component lifecycle을 관찰하는 방식을 이해합니다.
+- `compose.WithCallbacks`로 실행 단위 observability를 붙입니다.
+- `ChatTemplate -> ChatModel` Chain에서 start/end/error event를 확인합니다.
+
+완료 기준:
+
+- `internal/llm`에 `CallbackRecorder`와 observable Chain helper가 있습니다.
+- `callbacks.NewHandlerBuilder`로 start/end/error event를 수집합니다.
+- 테스트는 `Chain start -> ChatTemplate start/end -> ChatModel start/end -> Chain end` 순서를 검증합니다.
+- `cmd/ch08-callback-observability` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel 실행 event를 출력합니다.
+- CLI 기본 질문과 history는 한국어 예시로 구성합니다.
+- Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
+- `go test ./...`가 통과합니다.
+
+## Chapter 08 이후 로드맵
+
 - Chapter 09: RAG 기초
 - Chapter 10: ReAct Agent
 - Chapter 11: GraphTool

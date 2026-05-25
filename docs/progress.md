@@ -93,6 +93,21 @@
 - OpenAI Streaming integration test 추가
 - 기본 `go test ./...`는 외부 API 없이 통과
 
+## Chapter 08. Callback과 Observability
+
+상태: 완료
+
+완료 기준:
+
+- `callbacks.NewHandlerBuilder` 기반 `CallbackRecorder` 구현
+- `compose.WithCallbacks`로 Chain 실행에 callback handler 연결
+- `ChatTemplate`, `ChatModel` start/end/error event 수집
+- callback이 관찰자 역할로 event timeline을 기록하는지 테스트
+- model error가 발생해도 callback event를 확인할 수 있는 테스트 추가
+- OpenAI ChatModel 기반 `cmd/ch08-callback-observability` 예제 추가
+- OpenAI Callback integration test 추가
+- 기본 `go test ./...`는 외부 API 없이 통과
+
 ## 다음 작업
 
-- Chapter 08에서 Callback과 Observability를 다룹니다.
+- Chapter 09에서 RAG 기초를 다룹니다.
