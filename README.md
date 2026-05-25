@@ -186,3 +186,76 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIChatChainIntegratio
 다음 장에서 할 일:
 
 - Chapter 06에서 Graph로 분기와 더 복잡한 실행 흐름을 다룹니다.
+
+## Chapter 06. Graph 구성
+
+이번 장의 목표:
+
+- Eino의 `compose.NewGraph`로 명시적인 node와 edge를 가진 DAG를 구성합니다.
+- `AddBranch`로 입력에 따라 calculator branch 또는 chat model branch를 선택합니다.
+- Chain보다 Graph가 어울리는 분기 흐름을 실제 실행 출력으로 확인합니다.
+
+핵심 개념:
+
+- Graph는 `START`, named node, `END`를 edge로 직접 연결합니다.
+- 이번 장의 Graph는 `route` node에서 질문을 분류합니다.
+- `calculate:` 또는 `calc:` 질문은 `calculator` branch에서 실제 계산하고 model을 호출하지 않습니다.
+- 일반 질문은 `prepare_prompt -> ChatTemplate -> ChatModel` branch로 이동합니다.
+- CLI는 선택된 route, branch별 중간 출력, final answer를 보여줍니다.
+
+Graph 다이어그램:
+
+```mermaid
+flowchart TD
+    START([START]) --> route{"route<br/>질문 분류"}
+
+    route -- "calculate: / calc: / 산술식" --> calculator["calculator<br/>실제 계산"]
+    calculator --> END_CALC([END])
+
+    route -- "일반 채팅 질문" --> prepare["prepare_prompt<br/>질문 + history -> template 변수"]
+    prepare --> prompt["ChatTemplate<br/>변수 -> prompt messages"]
+    prompt --> trace["trace_prompt<br/>prompt messages 캡처"]
+    trace --> model["ChatModel<br/>OpenAI / fake model"]
+    model --> output["model_output<br/>assistant message -> 결과"]
+    output --> END_CHAT([END])
+```
+
+Node 주석:
+
+- `route`: 질문을 보고 계산 branch 또는 채팅 branch를 선택합니다.
+- `calculator`: `internal/tools.Calculate`를 직접 호출하므로 ChatModel을 호출하지 않습니다.
+- `prepare_prompt`: Graph 내부 state를 `ChatTemplate` 입력 변수로 바꿉니다.
+- `ChatTemplate`: system, history, user question 메시지 목록을 만듭니다.
+- `trace_prompt`: CLI와 테스트에서 prompt message를 관찰하기 위한 추적 node입니다.
+- `ChatModel`: 일반 질문 branch에서만 실제 model을 호출합니다.
+- `model_output`: model response를 `AssistantGraphResult`로 포장합니다.
+
+실행 명령:
+
+```bash
+go run ./cmd/ch06-graph
+```
+
+단일 질문 실행:
+
+```bash
+go run ./cmd/ch06-graph 'calculate: 7 * (8 + 2)'
+```
+
+`OPENAI_API_KEY`는 shell 환경 변수 또는 repository root의 `.env`에서 읽습니다.
+
+테스트 명령:
+
+```bash
+go test ./internal/llm -run 'TestAssistantGraph|TestNewAssistantGraph' -count=1
+```
+
+실제 OpenAI Graph integration test:
+
+```bash
+RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIAssistantGraphIntegration -count=1 -v
+```
+
+다음 장에서 할 일:
+
+- Chapter 07에서 Streaming을 다룹니다.

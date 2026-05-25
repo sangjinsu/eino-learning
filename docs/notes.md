@@ -42,3 +42,26 @@
 - `RunChatChainWithTrace`는 trace lambda를 Chain 중간에 넣어 input variables, prompt messages, model response를 관찰합니다.
 - Unit test는 fake model로 빠르게 검증하고, 실제 OpenAI 호출은 `RUN_EINO_INTEGRATION=1`일 때만 실행합니다.
 - 반복, 조건 분기, tool result를 다시 model에 넣는 흐름은 Chapter 6 Graph에서 더 명시적으로 다룰 예정입니다.
+
+## Chapter 06
+
+- `compose.NewGraph[I, O]`는 named node와 explicit edge로 실행 흐름을 구성합니다.
+- `AddEdge(compose.START, "node")`와 `AddEdge("node", compose.END)`로 graph의 입구와 출구를 연결합니다.
+- `compose.NewGraphBranch`와 `AddBranch`는 특정 node 출력값을 보고 다음 node를 선택합니다.
+- Chapter 6 Graph는 `route` node에서 calculator 질문과 일반 chat 질문을 분기합니다.
+- calculator branch는 `internal/tools.Calculate`를 직접 실행하므로 model을 호출하지 않습니다.
+- chat branch는 `prepare_prompt -> ChatTemplate -> ChatModel`로 이어지며, Chain에서 배운 선형 흐름을 Graph의 한 branch로 표현합니다.
+- CLI는 선택된 route와 branch별 중간 값을 출력해서 Graph가 실제로 어디로 흘렀는지 보여줍니다.
+
+```mermaid
+flowchart TD
+    START([START]) --> route{"route"}
+    route -- "계산 질문" --> calculator["calculator"]
+    calculator --> END_CALC([END])
+    route -- "채팅 질문" --> prepare["prepare_prompt"]
+    prepare --> prompt["ChatTemplate"]
+    prompt --> trace["trace_prompt"]
+    trace --> model["ChatModel"]
+    model --> output["model_output"]
+    output --> END_CHAT([END])
+```
