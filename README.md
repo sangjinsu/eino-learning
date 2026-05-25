@@ -314,3 +314,85 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIChatStreamingIntegr
 다음 장에서 할 일:
 
 - Chapter 08에서 Callback과 Observability를 다룹니다.
+
+## Chapter 08. Callback과 Observability
+
+이번 장의 목표:
+
+- Eino `callbacks.NewHandlerBuilder`로 component lifecycle event를 관찰합니다.
+- `compose.WithCallbacks(handler)`로 한 번의 Chain 실행에 callback handler를 연결합니다.
+- `ChatTemplate -> ChatModel` 흐름에서 start/end/error event를 수집해 출력합니다.
+
+핵심 개념:
+
+- Callback은 component 실행 전후와 error 시점에 호출되는 관찰 hook입니다.
+- `callbacks.RunInfo`는 callback을 발생시킨 node 이름과 component 종류를 알려줍니다.
+- callback input/output은 component별 타입으로 변환해서 읽습니다.
+- 이번 장은 `prompt.ConvCallbackInput`, `prompt.ConvCallbackOutput`, `model.ConvCallbackInput`, `model.ConvCallbackOutput`를 사용합니다.
+- Unit test는 fake model로 event를 검증하고, CLI와 integration test는 실제 OpenAI ChatModel로 실행합니다.
+
+Callback 다이어그램:
+
+```mermaid
+flowchart LR
+    input["question + history"] --> prompt["ChatTemplate"]
+    prompt --> model["ChatModel"]
+    model --> answer["assistant answer"]
+
+    handler["CallbackRecorder"] -. "OnStart / OnEnd / OnError" .-> prompt
+    handler -. "OnStart / OnEnd / OnError" .-> model
+    handler --> events["CallbackEvent list"]
+```
+
+실선은 실제 답변 생성 흐름이고, 점선은 관찰 흐름입니다. Callback은 답변을 대신 만들지 않고 옆에서 start/end/error event를 기록합니다.
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant Callback as CallbackRecorder
+    participant Template as ChatTemplate
+    participant Model as ChatModel
+
+    App->>Callback: OnStart Chain
+    App->>Callback: OnStart ChatTemplate
+    App->>Template: question + history
+    Template-->>App: prompt messages
+    App->>Callback: OnEnd ChatTemplate
+    App->>Callback: OnStart ChatModel
+    App->>Model: prompt messages
+    Model-->>App: assistant answer
+    App->>Callback: OnEnd ChatModel
+    App->>Callback: OnEnd Chain
+```
+
+테스트에서는 위 순서가 `Chain start -> ChatTemplate start/end -> ChatModel start/end -> Chain end`로 기록되는지 확인합니다. 이 검증 덕분에 callback이 주 실행 흐름을 바꾸는 기능이 아니라 실행 과정을 관찰하는 기능이라는 점을 코드로도 확인할 수 있습니다.
+
+실행 명령:
+
+```bash
+go run ./cmd/ch08-callback-observability 'Eino callback은 observability에 어떻게 도움이 되나요?'
+```
+
+한국어 예시 질문:
+
+```bash
+go run ./cmd/ch08-callback-observability 'ChatTemplate과 ChatModel 실행을 callback으로 어떻게 관찰하나요?'
+```
+
+`OPENAI_API_KEY`는 shell 환경 변수 또는 repository root의 `.env`에서 읽습니다.
+
+테스트 명령:
+
+```bash
+go test ./internal/llm -run 'TestRunObservableChatChain' -count=1
+```
+
+실제 OpenAI Callback integration test:
+
+```bash
+RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIObservableChatChainIntegration -count=1 -v
+```
+
+다음 장에서 할 일:
+
+- Chapter 09에서 RAG 기초를 다룹니다.

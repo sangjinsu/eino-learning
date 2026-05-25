@@ -85,3 +85,51 @@ flowchart LR
     reader --> recv["Recv loop"]
     recv --> answer["chunk를 이어 붙인 answer"]
 ```
+
+## Chapter 08
+
+- Eino callback은 component 실행 lifecycle을 관찰하는 hook입니다.
+- `callbacks.NewHandlerBuilder`는 필요한 timing만 등록해 handler를 만듭니다.
+- `compose.WithCallbacks(handler)`를 `Runnable.Invoke`에 넘기면 해당 실행에만 callback이 적용됩니다.
+- `OnStart`는 component 실행 전 input을 받고, `OnEnd`는 성공 output을 받으며, `OnError`는 component가 error를 반환할 때 호출됩니다.
+- `callbacks.RunInfo`에는 node 이름과 component 종류가 들어 있으므로 log, tracing, metrics label로 사용할 수 있습니다.
+- callback input/output은 공통 `any` 형태이므로 `prompt.ConvCallbackInput`, `model.ConvCallbackOutput` 같은 helper로 안전하게 변환합니다.
+- stream callback의 `StreamReader` copy는 반드시 닫아야 하지만, Chapter 8은 먼저 non-streaming Chain event에 집중합니다.
+- Unit test는 fake model로 callback event를 검증하고, 실제 OpenAI 호출은 `RUN_EINO_INTEGRATION=1`일 때만 실행합니다.
+- 한국어 예시 질문은 `Eino callback은 observability에 어떻게 도움이 되나요?`입니다.
+- 예시 history는 `Chapter 7에서는 무엇을 다뤘나요?` -> `StreamReader를 사용한 streaming 흐름을 다뤘습니다.` 순서로 넣습니다.
+
+```mermaid
+flowchart LR
+    input["질문 + history"] --> prompt["ChatTemplate"]
+    prompt --> model["ChatModel"]
+    model --> answer["assistant answer"]
+    recorder["CallbackRecorder"] -. "start/end/error" .-> prompt
+    recorder -. "start/end/error" .-> model
+    recorder --> events["CallbackEvent 목록"]
+```
+
+Callback을 시간 순서로 보면 다음과 같습니다.
+
+```mermaid
+sequenceDiagram
+    participant App
+    participant Callback as CallbackRecorder
+    participant Template as ChatTemplate
+    participant Model as ChatModel
+
+    App->>Callback: OnStart Chain
+    App->>Callback: OnStart ChatTemplate
+    App->>Template: 질문 + history
+    Template-->>App: prompt messages
+    App->>Callback: OnEnd ChatTemplate
+    App->>Callback: OnStart ChatModel
+    App->>Model: prompt messages
+    Model-->>App: assistant answer
+    App->>Callback: OnEnd ChatModel
+    App->>Callback: OnEnd Chain
+```
+
+- 실선 흐름은 `질문 -> ChatTemplate -> ChatModel -> 답변`입니다.
+- callback은 점선처럼 옆에서 lifecycle event만 받는 관찰자입니다.
+- `TestRunObservableChatChainCapturesPromptAndModelEvents`는 이 event timeline을 검증해 callback이 답변 생성 흐름을 바꾸지 않는다는 점을 보여줍니다.
