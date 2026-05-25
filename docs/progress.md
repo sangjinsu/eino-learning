@@ -65,6 +65,20 @@
 - OpenAI Chain integration test 추가
 - 기본 `go test ./...`는 외부 API 없이 통과
 
+## Chapter 06. Graph 구성
+
+상태: 완료
+
+완료 기준:
+
+- `compose.NewGraph`로 route, calculator, prompt, model node 구성
+- `AddBranch`로 calculator branch와 chat model branch 분기 구현
+- calculator branch는 model 호출 없이 실제 계산 수행
+- chat branch는 `ChatTemplate -> ChatModel` 흐름 실행
+- OpenAI ChatModel 기반 `cmd/ch06-graph` 예제 추가
+- OpenAI Graph integration test 추가
+- 기본 `go test ./...`는 외부 API 없이 통과
+
 ## 다음 작업
 
-- Chapter 06에서 Graph 구성을 다룹니다.
+- Chapter 07에서 Streaming을 다룹니다.

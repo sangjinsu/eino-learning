@@ -83,9 +83,25 @@
 - Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
 - `go test ./...`가 통과합니다.
 
-## Chapter 06 이후 로드맵
+## Chapter 06. Graph 구성
 
-- Chapter 06: Graph 구성
+목표:
+
+- Eino의 `compose.NewGraph`로 named node와 explicit edge를 구성하는 방법을 이해합니다.
+- `AddBranch`로 입력에 따라 다른 node path를 선택하는 흐름을 확인합니다.
+- calculator branch와 chat model branch를 나눠 Graph가 Chain보다 어울리는 상황을 학습합니다.
+
+완료 기준:
+
+- `internal/llm`에 `AssistantGraphService`가 있습니다.
+- Graph는 `route -> calculator` 또는 `route -> ChatTemplate -> ChatModel`로 분기합니다.
+- calculator branch는 model을 호출하지 않고 실제 계산을 수행합니다.
+- `cmd/ch06-graph` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel 기반 Graph를 실행합니다.
+- Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
+- `go test ./...`가 통과합니다.
+
+## Chapter 07 이후 로드맵
+
 - Chapter 07: Streaming
 - Chapter 08: Callback과 Observability
 - Chapter 09: RAG 기초
