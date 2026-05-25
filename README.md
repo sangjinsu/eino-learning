@@ -144,4 +144,45 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIToolCallingIntegrat
 
 다음 장에서 할 일:
 
-- Chapter 05에서 ChatTemplate, ChatModel, ToolsNode를 Chain으로 연결합니다.
+- Chapter 05에서 ChatTemplate과 ChatModel을 Eino Chain으로 연결합니다.
+
+## Chapter 05. Chain 구성
+
+이번 장의 목표:
+
+- Eino의 `compose.NewChain`으로 선형 component pipeline을 구성합니다.
+- 기존 `ChatTemplate -> ChatModel` 흐름을 직접 호출 대신 compiled `Runnable`로 실행합니다.
+- unit test는 fake model로 검증하고, CLI와 integration test는 실제 OpenAI ChatModel로 실행합니다.
+
+핵심 개념:
+
+- Chain은 component를 `Append...` 순서대로 연결한 뒤 `Compile`해서 `Runnable`로 만듭니다.
+- 이번 장의 Chain은 `map[string]any -> ChatTemplate -> ChatModel -> *schema.Message` 흐름입니다.
+- `Runnable.Invoke(ctx, input)`은 Chain 전체를 하나의 함수처럼 실행합니다.
+- Chapter 5 CLI는 `OPENAI_API_KEY`가 있으면 실제 OpenAI ChatModel을 Chain에 연결합니다.
+- CLI는 trace lambda를 통해 input variables, ChatTemplate output, ChatModel output을 단계별로 출력합니다.
+- tool calling처럼 반복이나 조건이 필요한 흐름은 이후 Graph/Agent 장에서 더 자연스럽게 다룹니다.
+
+실행 명령:
+
+```bash
+go run ./cmd/ch05-chain 'How does Chain work?'
+```
+
+`OPENAI_API_KEY`는 shell 환경 변수 또는 repository root의 `.env`에서 읽습니다.
+
+테스트 명령:
+
+```bash
+go test ./internal/llm -run 'TestChatChainService|TestNewChatChainService' -count=1
+```
+
+실제 OpenAI Chain integration test:
+
+```bash
+RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIChatChainIntegration -count=1 -v
+```
+
+다음 장에서 할 일:
+
+- Chapter 06에서 Graph로 분기와 더 복잡한 실행 흐름을 다룹니다.
