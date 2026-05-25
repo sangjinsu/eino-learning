@@ -30,13 +30,8 @@ func (m *ChatModel) Generate(ctx context.Context, input []*schema.Message, opts 
 	_ = ctx
 	_ = opts
 
-	if len(input) == 0 {
-		return nil, ErrEmptyInput
-	}
-
-	last := input[len(input)-1]
-	if last == nil || last.Role != schema.User || strings.TrimSpace(last.Content) == "" {
-		return nil, ErrBlankUserInput
+	if err := validateChatInput(input); err != nil {
+		return nil, err
 	}
 
 	m.lastInput = append([]*schema.Message(nil), input...)
@@ -53,4 +48,17 @@ func (m *ChatModel) Stream(ctx context.Context, input []*schema.Message, opts ..
 
 func (m *ChatModel) LastInput() []*schema.Message {
 	return append([]*schema.Message(nil), m.lastInput...)
+}
+
+func validateChatInput(input []*schema.Message) error {
+	if len(input) == 0 {
+		return ErrEmptyInput
+	}
+
+	last := input[len(input)-1]
+	if last == nil || last.Role != schema.User || strings.TrimSpace(last.Content) == "" {
+		return ErrBlankUserInput
+	}
+
+	return nil
 }

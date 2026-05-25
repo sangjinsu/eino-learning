@@ -100,9 +100,25 @@
 - Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
 - `go test ./...`가 통과합니다.
 
+## Chapter 07. Streaming
+
+목표:
+
+- Eino `ChatModel.Stream`과 `schema.StreamReader` 사용법을 이해합니다.
+- `Recv()` loop로 assistant chunk를 읽고 `io.EOF`에서 종료하는 패턴을 확인합니다.
+- 같은 `ChatTemplate` prompt를 streaming model 입력으로 전달합니다.
+
+완료 기준:
+
+- `internal/llm`에 streaming helper가 있습니다.
+- `ChatService.StreamWithHistory`는 `ChatTemplate -> ChatModel.Stream` 흐름을 실행합니다.
+- `ChatService.AskStreamingWithHistory`는 chunk를 모아 `StreamingResult`를 반환합니다.
+- `cmd/ch07-streaming` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel stream을 출력합니다.
+- Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
+- `go test ./...`가 통과합니다.
+
 ## Chapter 07 이후 로드맵
 
-- Chapter 07: Streaming
 - Chapter 08: Callback과 Observability
 - Chapter 09: RAG 기초
 - Chapter 10: ReAct Agent

@@ -259,3 +259,58 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIAssistantGraphInteg
 다음 장에서 할 일:
 
 - Chapter 07에서 Streaming을 다룹니다.
+
+## Chapter 07. Streaming
+
+이번 장의 목표:
+
+- `ChatModel.Stream`이 `schema.StreamReader[*schema.Message]`를 반환하는 흐름을 이해합니다.
+- `Recv()`를 `io.EOF`까지 반복하며 chunk를 받아 최종 answer로 합칩니다.
+- unit test는 fake streaming model로 검증하고, CLI와 integration test는 실제 OpenAI ChatModel로 실행합니다.
+
+핵심 개념:
+
+- Streaming은 `Generate`처럼 완성된 assistant message를 기다리지 않고, 생성되는 조각을 순서대로 읽습니다.
+- `StreamReader`는 한 번만 읽을 수 있고, 사용 후 `Close()`해야 합니다.
+- 이번 장의 흐름은 `question + history -> ChatTemplate -> ChatModel.Stream -> StreamReader.Recv loop`입니다.
+- `ChatService.AskStreamingWithHistory`는 stream chunk를 모아 `StreamingResult`로 반환합니다.
+- `ChatService.StreamWithHistory`는 CLI처럼 직접 `Recv()` loop를 제어하고 싶을 때 사용합니다.
+
+Streaming 다이어그램:
+
+```mermaid
+flowchart LR
+    input["question + history"] --> template["ChatTemplate"]
+    template --> messages["[]*schema.Message"]
+    messages --> stream["ChatModel.Stream"]
+    stream --> reader["schema.StreamReader"]
+    reader --> loop{"Recv()"}
+    loop -- "chunk" --> collect["answer에 이어 붙이기"]
+    collect --> loop
+    loop -- "io.EOF" --> final["final answer"]
+```
+
+실행 명령:
+
+```bash
+go run ./cmd/ch07-streaming 'How does Eino streaming work?'
+```
+
+`OPENAI_API_KEY`는 shell 환경 변수 또는 repository root의 `.env`에서 읽습니다.
+
+테스트 명령:
+
+```bash
+go test ./internal/llm -run 'TestChatService.*Streaming|TestChatServiceStream' -count=1
+go test ./internal/fake -run TestStreamingChatModel -count=1
+```
+
+실제 OpenAI Streaming integration test:
+
+```bash
+RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIChatStreamingIntegration -count=1 -v
+```
+
+다음 장에서 할 일:
+
+- Chapter 08에서 Callback과 Observability를 다룹니다.
