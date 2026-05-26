@@ -17,7 +17,7 @@ import (
 
 const (
 	defaultDocsDir  = "testdata/docs/ch09-rag"
-	defaultQuestion = "RAG는 Eino 학습 예제에서 어떤 문제를 해결하나요?"
+	defaultQuestion = "Chapter 8 callback은 RAG에서 어떤 흐름을 관찰하나요?"
 )
 
 func main() {

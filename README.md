@@ -431,7 +431,7 @@ flowchart TD
 실행 명령:
 
 ```bash
-go run ./cmd/ch09-rag 'Chapter 8 callback은 RAG와 어떻게 연결될 수 있나요?'
+go run ./cmd/ch09-rag 'Chapter 8 callback은 RAG에서 어떤 흐름을 관찰하나요?'
 ```
 
 `OPENAI_API_KEY`는 shell 환경 변수 또는 repository root의 `.env`에서 읽습니다.
