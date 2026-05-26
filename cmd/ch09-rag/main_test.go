@@ -49,7 +49,7 @@ func TestMetadataStringFallsBackToDefault(t *testing.T) {
 	}
 }
 
-func TestDefaultQuestionRetrievesSampleDocument(t *testing.T) {
+func TestDefaultQuestionRetrievesCallbackDocument(t *testing.T) {
 	docs, err := loadDocuments(defaultDocsDir)
 	if err != nil {
 		t.Fatalf("loadDocuments returned error: %v", err)
@@ -64,7 +64,7 @@ func TestDefaultQuestionRetrievesSampleDocument(t *testing.T) {
 	if len(got) == 0 {
 		t.Fatal("default question retrieved no documents")
 	}
-	if got[0].ID != "chapter09-rag-basics" {
-		t.Fatalf("first document ID = %q, want chapter09-rag-basics", got[0].ID)
+	if got[0].ID != "chapter08-callback-observability" {
+		t.Fatalf("first document ID = %q, want chapter08-callback-observability", got[0].ID)
 	}
 }

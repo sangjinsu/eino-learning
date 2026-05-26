@@ -123,6 +123,27 @@ func TestInMemoryRetrieverUsesChapter09TestdataDocuments(t *testing.T) {
 	}
 }
 
+func TestInMemoryRetrieverFindsCallbackDocumentForKoreanRAGQuestion(t *testing.T) {
+	ctx := context.Background()
+	retr := NewInMemoryRetriever([]*schema.Document{
+		testdataDocument(t, "chapter08", "Chapter 08 Callback Observability", "chapter08-callback-observability.md"),
+		testdataDocument(t, "chapter09", "Chapter 09 RAG Basics", "chapter09-rag-basics.txt"),
+		testdataDocument(t, "chapter06", "Chapter 06 Graph", "chapter06-graph.md"),
+	})
+
+	got, err := retr.Retrieve(ctx, "Chapter 8 callback은 RAG에서 어떤 흐름을 관찰하나요?", retriever.WithTopK(2))
+	if err != nil {
+		t.Fatalf("Retrieve returned error: %v", err)
+	}
+
+	if len(got) == 0 {
+		t.Fatal("retrieved no documents")
+	}
+	if got[0].ID != "chapter08" {
+		t.Fatalf("first document ID = %q, want chapter08: %#v", got[0].ID, got)
+	}
+}
+
 func TestServiceRejectsBlankQuestionBeforeRetrievalOrModel(t *testing.T) {
 	ctx := context.Background()
 	spy := &spyRetriever{}
