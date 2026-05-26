@@ -7,7 +7,7 @@
 완료 기준:
 
 - fake ChatModel 구현
-- ChatService 구현
+- `internal/llm/chat.Service` 구현
 - CLI 예제 추가
 - `go test ./...` 통과
 
@@ -19,7 +19,7 @@
 
 - 기본 ChatTemplate 구현
 - system prompt, optional history, user question message 순서 테스트
-- ChatService의 `AskWithHistory` 구현
+- `chat.Service`의 `AskWithHistory` 구현
 - CLI 예제 추가
 - `go test ./...` 통과
 
@@ -45,7 +45,7 @@
 - 실제 계산을 수행하는 safe `calculator` invokable tool 구현
 - `ChatModel.WithTools`로 model에 `schema.ToolInfo` 전달
 - model이 생성한 `schema.ToolCall`을 `schema.ToolMessage`로 실행하는 helper 구현
-- tool result를 history에 붙이고 model final answer를 다시 생성하는 `AskWithTools` 구현
+- tool result를 history에 붙이고 model final answer를 다시 생성하는 `toolcalling.Service.Ask` 구현
 - Eino `compose.ToolsNode` 기반 tool 실행 테스트 추가
 - OpenAI ChatModel 기반 CLI 예제 추가
 - OpenAI tool calling integration test 추가
@@ -58,7 +58,7 @@
 완료 기준:
 
 - `compose.NewChain`으로 `ChatTemplate -> ChatModel` 선형 pipeline 구현
-- compiled `Runnable`을 사용하는 `ChatChainService` 구현
+- compiled `Runnable`을 사용하는 `chain.Service` 구현
 - history가 Chain 입력 변수로 전달되는지 테스트
 - blank question이 Chain 실행 전에 거부되는지 테스트
 - OpenAI ChatModel 기반 `cmd/ch05-chain` 예제 추가
@@ -85,8 +85,8 @@
 
 완료 기준:
 
-- `ChatService.StreamWithHistory`로 `ChatTemplate -> ChatModel.Stream` 흐름 구현
-- `AskStreamingWithHistory`로 stream chunk를 모아 최종 answer 반환
+- `streaming.Service.StreamWithHistory`로 `ChatTemplate -> ChatModel.Stream` 흐름 구현
+- `streaming.Service.AskWithHistory`로 stream chunk를 모아 최종 answer 반환
 - Chapter 7용 `fake.StreamingChatModel` 추가
 - blank question이 stream 호출 전에 거부되는지 테스트
 - OpenAI ChatModel 기반 `cmd/ch07-streaming` 예제 추가

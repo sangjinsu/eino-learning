@@ -1,4 +1,4 @@
-package llm
+package observability
 
 import (
 	"context"
@@ -7,14 +7,16 @@ import (
 	"time"
 
 	"github.com/cloudwego/eino/schema"
+	llmopenai "github.com/sangjinsu/eino-learning/internal/llm/openai"
+	"github.com/sangjinsu/eino-learning/internal/llm/prompting"
 )
 
 func TestOpenAIObservableChatChainIntegration(t *testing.T) {
-	if !OpenAIIntegrationEnabled() {
+	if !llmopenai.IntegrationEnabled() {
 		t.Skip("set RUN_EINO_INTEGRATION=1 to run OpenAI callback integration test")
 	}
 
-	cfg := LoadOpenAIConfigFromEnv()
+	cfg := llmopenai.LoadConfigFromEnv()
 	if strings.TrimSpace(cfg.APIKey) == "" {
 		t.Skip("set OPENAI_API_KEY to run OpenAI callback integration test")
 	}
@@ -22,12 +24,12 @@ func TestOpenAIObservableChatChainIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 
-	chatModel, err := NewOpenAIChatModel(ctx, cfg)
+	chatModel, err := llmopenai.NewChatModel(ctx, cfg)
 	if err != nil {
-		t.Fatalf("NewOpenAIChatModel returned error: %v", err)
+		t.Fatalf("NewChatModel returned error: %v", err)
 	}
 
-	result, err := RunObservableChatChain(ctx, chatModel, DefaultChatTemplate(), "한 문장으로 Eino callback은 무엇을 관찰하나요?", []*schema.Message{
+	result, err := RunObservableChatChain(ctx, chatModel, prompting.DefaultChatTemplate(), "한 문장으로 Eino callback은 무엇을 관찰하나요?", []*schema.Message{
 		schema.UserMessage("Chapter 7에서는 무엇을 다뤘나요?"),
 		schema.AssistantMessage("Streaming을 다뤘습니다.", nil),
 	})

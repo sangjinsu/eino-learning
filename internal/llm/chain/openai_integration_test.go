@@ -1,4 +1,4 @@
-package llm
+package chain
 
 import (
 	"context"
@@ -7,14 +7,15 @@ import (
 	"time"
 
 	"github.com/cloudwego/eino/schema"
+	llmopenai "github.com/sangjinsu/eino-learning/internal/llm/openai"
 )
 
 func TestOpenAIChatChainIntegration(t *testing.T) {
-	if !OpenAIIntegrationEnabled() {
+	if !llmopenai.IntegrationEnabled() {
 		t.Skip("set RUN_EINO_INTEGRATION=1 to run OpenAI chain integration test")
 	}
 
-	cfg := LoadOpenAIConfigFromEnv()
+	cfg := llmopenai.LoadConfigFromEnv()
 	if strings.TrimSpace(cfg.APIKey) == "" {
 		t.Skip("set OPENAI_API_KEY to run OpenAI chain integration test")
 	}
@@ -22,14 +23,14 @@ func TestOpenAIChatChainIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 
-	chatModel, err := NewOpenAIChatModel(ctx, cfg)
+	chatModel, err := llmopenai.NewChatModel(ctx, cfg)
 	if err != nil {
-		t.Fatalf("NewOpenAIChatModel returned error: %v", err)
+		t.Fatalf("NewChatModel returned error: %v", err)
 	}
 
-	service, err := NewChatChainService(ctx, chatModel)
+	service, err := NewService(ctx, chatModel)
 	if err != nil {
-		t.Fatalf("NewChatChainService returned error: %v", err)
+		t.Fatalf("NewService returned error: %v", err)
 	}
 	answer, err := service.AskWithHistory(ctx, "In one short sentence, what does Eino Chain do?", []*schema.Message{
 		schema.UserMessage("What did the previous chapter cover?"),

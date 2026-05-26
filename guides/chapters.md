@@ -14,7 +14,7 @@
 완료 기준:
 
 - `internal/fake`에 fake ChatModel이 있습니다.
-- `internal/llm`에 fake model을 주입할 수 있는 service가 있습니다.
+- `internal/llm/chat`에 fake model을 주입할 수 있는 service가 있습니다.
 - `cmd/ch01-chatmodel` 예제가 외부 API 없이 실행됩니다.
 - `go test ./...`가 통과합니다.
 
@@ -28,8 +28,8 @@
 
 완료 기준:
 
-- `internal/llm`에 기본 ChatTemplate이 있습니다.
-- `ChatService`가 `AskWithHistory`로 history를 받을 수 있습니다.
+- `internal/llm/prompting`에 기본 ChatTemplate이 있습니다.
+- `internal/llm/chat.Service`가 `AskWithHistory`로 history를 받을 수 있습니다.
 - `cmd/ch02-prompt-template` 예제가 외부 API 없이 실행됩니다.
 - `go test ./...`가 통과합니다.
 
@@ -43,7 +43,7 @@
 
 완료 기준:
 
-- `internal/llm`에 OpenAI ChatModel factory가 있습니다.
+- `internal/llm/openai`에 OpenAI ChatModel factory가 있습니다.
 - `.env` 또는 환경 변수 기반 `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_BASE_URL` config가 있습니다.
 - `RUN_EINO_INTEGRATION=1`일 때만 실제 API 호출 test가 실행됩니다.
 - `cmd/ch03-openai-chatmodel` 예제가 기본 실행에서는 API를 호출하지 않습니다.
@@ -62,7 +62,7 @@
 
 - `internal/tools`에 실제 계산을 수행하는 safe `calculator` tool이 있습니다.
 - Eino `compose.ToolsNode`로 tool call을 실행하는 helper가 있습니다.
-- `internal/llm`에 model -> tool -> model final answer loop를 실행하는 `AskWithTools`가 있습니다.
+- `internal/llm/toolcalling`에 model -> tool -> model final answer loop를 실행하는 service가 있습니다.
 - `cmd/ch04-tool-calling` 예제가 `OPENAI_API_KEY`를 읽어 실제 model-backed tool calling을 실행합니다.
 - Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
 - `go test ./...`가 통과합니다.
@@ -77,7 +77,7 @@
 
 완료 기준:
 
-- `internal/llm`에 `ChatChainService`가 있습니다.
+- `internal/llm/chain`에 Chain service가 있습니다.
 - Chain은 `map[string]any -> ChatTemplate -> ChatModel -> *schema.Message` 흐름입니다.
 - `cmd/ch05-chain` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel 기반 Chain을 실행합니다.
 - Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
@@ -93,7 +93,7 @@
 
 완료 기준:
 
-- `internal/llm`에 `AssistantGraphService`가 있습니다.
+- `internal/llm/graph`에 Graph service가 있습니다.
 - Graph는 `route -> calculator` 또는 `route -> ChatTemplate -> ChatModel`로 분기합니다.
 - calculator branch는 model을 호출하지 않고 실제 계산을 수행합니다.
 - `cmd/ch06-graph` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel 기반 Graph를 실행합니다.
@@ -110,9 +110,9 @@
 
 완료 기준:
 
-- `internal/llm`에 streaming helper가 있습니다.
-- `ChatService.StreamWithHistory`는 `ChatTemplate -> ChatModel.Stream` 흐름을 실행합니다.
-- `ChatService.AskStreamingWithHistory`는 chunk를 모아 `StreamingResult`를 반환합니다.
+- `internal/llm/streaming`에 streaming helper가 있습니다.
+- `streaming.Service.StreamWithHistory`는 `ChatTemplate -> ChatModel.Stream` 흐름을 실행합니다.
+- `streaming.Service.AskWithHistory`는 chunk를 모아 `streaming.Result`를 반환합니다.
 - `cmd/ch07-streaming` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel stream을 출력합니다.
 - Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
 - `go test ./...`가 통과합니다.
@@ -127,7 +127,7 @@
 
 완료 기준:
 
-- `internal/llm`에 `CallbackRecorder`와 observable Chain helper가 있습니다.
+- `internal/llm/observability`에 `CallbackRecorder`와 observable Chain helper가 있습니다.
 - `callbacks.NewHandlerBuilder`로 start/end/error event를 수집합니다.
 - 테스트는 `Chain start -> ChatTemplate start/end -> ChatModel start/end -> Chain end` 순서를 검증합니다.
 - `cmd/ch08-callback-observability` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel 실행 event를 출력합니다.

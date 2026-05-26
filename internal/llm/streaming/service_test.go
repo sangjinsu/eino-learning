@@ -1,4 +1,4 @@
-package llm
+package streaming
 
 import (
 	"context"
@@ -7,20 +7,21 @@ import (
 
 	"github.com/cloudwego/eino/schema"
 	"github.com/sangjinsu/eino-learning/internal/fake"
+	"github.com/sangjinsu/eino-learning/internal/llm/prompting"
 )
 
-func TestChatServiceAskStreamingWithHistoryCollectsChunksAndReturnsAnswer(t *testing.T) {
+func TestChatServiceAskWithHistoryCollectsChunksAndReturnsAnswer(t *testing.T) {
 	ctx := context.Background()
 	chatModel := fake.NewStreamingChatModel("Streaming ", "returns ", "chunks.")
-	service := NewChatService(chatModel)
+	service := NewService(chatModel)
 	history := []*schema.Message{
 		schema.UserMessage("What did Chapter 6 cover?"),
 		schema.AssistantMessage("It covered Graph branching.", nil),
 	}
 
-	got, err := service.AskStreamingWithHistory(ctx, "What does Chapter 7 add?", history)
+	got, err := service.AskWithHistory(ctx, "What does Chapter 7 add?", history)
 	if err != nil {
-		t.Fatalf("AskStreamingWithHistory returned error: %v", err)
+		t.Fatalf("AskWithHistory returned error: %v", err)
 	}
 
 	if got.Answer != "Streaming returns chunks." {
@@ -32,13 +33,13 @@ func TestChatServiceAskStreamingWithHistoryCollectsChunksAndReturnsAnswer(t *tes
 		{role: schema.Assistant, content: "chunks."},
 	})
 	assertMessages(t, got.PromptMessages, []messageWant{
-		{role: schema.System, content: DefaultSystemPrompt},
+		{role: schema.System, content: prompting.DefaultSystemPrompt},
 		{role: schema.User, content: "What did Chapter 6 cover?"},
 		{role: schema.Assistant, content: "It covered Graph branching."},
 		{role: schema.User, content: "What does Chapter 7 add?"},
 	})
 	assertMessages(t, chatModel.LastInput(), []messageWant{
-		{role: schema.System, content: DefaultSystemPrompt},
+		{role: schema.System, content: prompting.DefaultSystemPrompt},
 		{role: schema.User, content: "What did Chapter 6 cover?"},
 		{role: schema.Assistant, content: "It covered Graph branching."},
 		{role: schema.User, content: "What does Chapter 7 add?"},
@@ -51,7 +52,7 @@ func TestChatServiceAskStreamingWithHistoryCollectsChunksAndReturnsAnswer(t *tes
 func TestChatServiceStreamWithHistoryReturnsReaderForManualConsumption(t *testing.T) {
 	ctx := context.Background()
 	chatModel := fake.NewStreamingChatModel("one", " two")
-	service := NewChatService(chatModel)
+	service := NewService(chatModel)
 
 	reader, err := service.StreamWithHistory(ctx, "How does streaming work?", nil)
 	if err != nil {
@@ -72,13 +73,13 @@ func TestChatServiceStreamWithHistoryReturnsReaderForManualConsumption(t *testin
 	})
 }
 
-func TestChatServiceAskStreamingRejectsBlankQuestionBeforeCallingModel(t *testing.T) {
+func TestChatServiceAskRejectsBlankQuestionBeforeCallingModel(t *testing.T) {
 	chatModel := fake.NewStreamingChatModel("unused")
-	service := NewChatService(chatModel)
+	service := NewService(chatModel)
 
-	_, err := service.AskStreaming(context.Background(), " \t\n ")
-	if !errors.Is(err, ErrBlankQuestion) {
-		t.Fatalf("AskStreaming error = %v, want %v", err, ErrBlankQuestion)
+	_, err := service.Ask(context.Background(), " \t\n ")
+	if !errors.Is(err, prompting.ErrBlankQuestion) {
+		t.Fatalf("Ask error = %v, want %v", err, prompting.ErrBlankQuestion)
 	}
 
 	if got := chatModel.StreamCalls(); got != 0 {

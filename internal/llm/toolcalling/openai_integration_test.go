@@ -1,4 +1,4 @@
-package llm
+package toolcalling
 
 import (
 	"context"
@@ -7,15 +7,16 @@ import (
 	"time"
 
 	einotool "github.com/cloudwego/eino/components/tool"
+	llmopenai "github.com/sangjinsu/eino-learning/internal/llm/openai"
 	"github.com/sangjinsu/eino-learning/internal/tools"
 )
 
 func TestOpenAIToolCallingIntegration(t *testing.T) {
-	if !OpenAIIntegrationEnabled() {
+	if !llmopenai.IntegrationEnabled() {
 		t.Skip("set RUN_EINO_INTEGRATION=1 to run OpenAI tool calling integration test")
 	}
 
-	cfg := LoadOpenAIConfigFromEnv()
+	cfg := llmopenai.LoadConfigFromEnv()
 	if strings.TrimSpace(cfg.APIKey) == "" {
 		t.Skip("set OPENAI_API_KEY to run OpenAI tool calling integration test")
 	}
@@ -23,23 +24,23 @@ func TestOpenAIToolCallingIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	chatModel, err := NewOpenAIChatModel(ctx, cfg)
+	chatModel, err := llmopenai.NewChatModel(ctx, cfg)
 	if err != nil {
-		t.Fatalf("NewOpenAIChatModel returned error: %v", err)
+		t.Fatalf("NewChatModel returned error: %v", err)
 	}
 	calculatorTool, err := tools.NewCalculatorTool()
 	if err != nil {
 		t.Fatalf("NewCalculatorTool returned error: %v", err)
 	}
 
-	service := NewChatService(chatModel)
-	result, err := service.AskWithTools(
+	service := NewService(chatModel)
+	result, err := service.Ask(
 		ctx,
 		`Use the calculator tool to calculate "12 * (7 + 3)", then answer in one short sentence.`,
 		[]einotool.BaseTool{calculatorTool},
 	)
 	if err != nil {
-		t.Fatalf("AskWithTools returned error: %v", err)
+		t.Fatalf("Ask returned error: %v", err)
 	}
 	if len(result.FirstResponse.ToolCalls) == 0 {
 		t.Fatalf("model did not request a tool call; final answer = %q", result.Answer())

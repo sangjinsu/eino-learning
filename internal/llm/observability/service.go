@@ -1,4 +1,4 @@
-package llm
+package observability
 
 import (
 	"context"
@@ -13,6 +13,7 @@ import (
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
+	"github.com/sangjinsu/eino-learning/internal/llm/prompting"
 )
 
 const (
@@ -26,6 +27,11 @@ const (
 	CallbackTimingStart CallbackTiming = "start"
 	CallbackTimingEnd   CallbackTiming = "end"
 	CallbackTimingError CallbackTiming = "error"
+)
+
+var (
+	ErrModelRequired    = errors.New("observable chat chain: model is required")
+	ErrTemplateRequired = errors.New("observable chat chain: template is required")
 )
 
 // CallbackEvent는 Eino callback 한 번을 학습용으로 읽기 쉽게 요약한 값입니다.
@@ -103,8 +109,8 @@ func (r *CallbackRecorder) record(event CallbackEvent) {
 
 // RunObservableChatChain은 ChatTemplate -> ChatModel Chain을 실행하면서 callback event를 수집합니다.
 func RunObservableChatChain(ctx context.Context, chatModel model.BaseChatModel, template prompt.ChatTemplate, question string, history []*schema.Message) (*ObservableChatResult, error) {
-	if strings.TrimSpace(question) == "" {
-		return nil, ErrBlankQuestion
+	if prompting.IsBlankQuestion(question) {
+		return nil, prompting.ErrBlankQuestion
 	}
 
 	runnable, err := NewObservableChatChain(ctx, chatModel, template)
@@ -113,7 +119,7 @@ func RunObservableChatChain(ctx context.Context, chatModel model.BaseChatModel, 
 	}
 
 	recorder := NewCallbackRecorder()
-	message, err := runnable.Invoke(ctx, chatChainInput(question, history), compose.WithCallbacks(recorder.Handler()))
+	message, err := runnable.Invoke(ctx, prompting.ChatInput(question, history), compose.WithCallbacks(recorder.Handler()))
 	result := &ObservableChatResult{Events: recorder.Events()}
 	if err != nil {
 		return result, fmt.Errorf("invoke observable chat chain: %w", err)
@@ -129,10 +135,10 @@ func RunObservableChatChain(ctx context.Context, chatModel model.BaseChatModel, 
 // NewObservableChatChain은 callback 출력에서 알아보기 쉽도록 node 이름을 지정한 Chain을 만듭니다.
 func NewObservableChatChain(ctx context.Context, chatModel model.BaseChatModel, template prompt.ChatTemplate) (compose.Runnable[map[string]any, *schema.Message], error) {
 	if chatModel == nil {
-		return nil, ErrChainModelRequired
+		return nil, ErrModelRequired
 	}
 	if template == nil {
-		return nil, ErrChainTemplateRequired
+		return nil, ErrTemplateRequired
 	}
 
 	chain := compose.NewChain[map[string]any, *schema.Message]().

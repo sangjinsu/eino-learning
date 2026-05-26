@@ -9,7 +9,8 @@ import (
 	"time"
 
 	einotool "github.com/cloudwego/eino/components/tool"
-	"github.com/sangjinsu/eino-learning/internal/llm"
+	llmopenai "github.com/sangjinsu/eino-learning/internal/llm/openai"
+	"github.com/sangjinsu/eino-learning/internal/llm/toolcalling"
 	"github.com/sangjinsu/eino-learning/internal/tools"
 )
 
@@ -19,7 +20,7 @@ func main() {
 		expression = strings.Join(os.Args[1:], " ")
 	}
 
-	cfg := llm.LoadOpenAIConfigFromEnv()
+	cfg := llmopenai.LoadConfigFromEnv()
 	if err := cfg.Validate(); err != nil {
 		fmt.Println("OpenAI API key is not configured.")
 		fmt.Println("Set OPENAI_API_KEY in your shell or .env to run model-backed tool calling.")
@@ -29,7 +30,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	chatModel, err := llm.NewOpenAIChatModel(ctx, cfg)
+	chatModel, err := llmopenai.NewChatModel(ctx, cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,8 +45,8 @@ func main() {
 		tools.CalculatorToolName,
 		expression,
 	)
-	chatService := llm.NewChatService(chatModel)
-	result, err := chatService.AskWithTools(ctx, question, []einotool.BaseTool{calculatorTool})
+	chatService := toolcalling.NewService(chatModel)
+	result, err := chatService.Ask(ctx, question, []einotool.BaseTool{calculatorTool})
 	if err != nil {
 		log.Fatal(err)
 	}

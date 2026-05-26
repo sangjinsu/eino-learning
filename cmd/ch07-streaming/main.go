@@ -11,7 +11,8 @@ import (
 	"time"
 
 	"github.com/cloudwego/eino/schema"
-	"github.com/sangjinsu/eino-learning/internal/llm"
+	llmopenai "github.com/sangjinsu/eino-learning/internal/llm/openai"
+	"github.com/sangjinsu/eino-learning/internal/llm/streaming"
 )
 
 func main() {
@@ -20,7 +21,7 @@ func main() {
 		question = strings.Join(os.Args[1:], " ")
 	}
 
-	cfg := llm.LoadOpenAIConfigFromEnv()
+	cfg := llmopenai.LoadConfigFromEnv()
 	if err := cfg.Validate(); err != nil {
 		fmt.Println("OpenAI API key is not configured.")
 		fmt.Println("Set OPENAI_API_KEY in your shell or .env to run model-backed Streaming.")
@@ -30,11 +31,11 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
-	chatModel, err := llm.NewOpenAIChatModel(ctx, cfg)
+	chatModel, err := llmopenai.NewChatModel(ctx, cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	service := llm.NewChatService(chatModel)
+	service := streaming.NewService(chatModel)
 
 	history := []*schema.Message{
 		schema.UserMessage("What did Chapter 6 cover?"),

@@ -13,7 +13,7 @@ Go와 CloudWeGo Eino를 단계별로 익히는 학습 저장소입니다. 처음
 핵심 개념:
 
 - `internal/fake`는 테스트용 fake model을 제공합니다.
-- `internal/llm`은 `model.BaseChatModel`을 받아 질문/응답 흐름을 실행합니다.
+- `internal/llm/chat`은 `model.BaseChatModel`을 받아 질문/응답 흐름을 실행합니다.
 - `cmd/ch01-chatmodel`은 fake model을 사용하는 최소 실행 예제입니다.
 
 실행 명령:
@@ -39,7 +39,7 @@ go test ./...
 
 - Eino의 `prompt.ChatTemplate`이 변수를 `[]*schema.Message`로 바꾸는 흐름을 이해합니다.
 - system prompt, optional chat history, user question 순서의 message 설계를 테스트합니다.
-- `ChatService`가 template으로 만든 message를 `ChatModel.Generate`에 전달하게 만듭니다.
+- `chat.Service`가 template으로 만든 message를 `ChatModel.Generate`에 전달하게 만듭니다.
 
 핵심 개념:
 
@@ -67,13 +67,13 @@ go test ./...
 
 이번 장의 목표:
 
-- Eino extension의 OpenAI ChatModel을 `ChatService`에 주입합니다.
+- Eino extension의 OpenAI ChatModel을 `chat.Service`에 주입합니다.
 - `.env` 또는 환경 변수의 `OPENAI_API_KEY`, `OPENAI_MODEL`, `OPENAI_BASE_URL`로 provider 설정을 분리합니다.
 - 실제 API 호출은 `RUN_EINO_INTEGRATION=1`일 때만 실행되게 만듭니다.
 
 핵심 개념:
 
-- `internal/llm`은 fake model과 OpenAI model 모두를 `model.BaseChatModel`로 다룹니다.
+- `internal/llm/chat`과 `internal/llm/openai`는 `model.BaseChatModel` 경계로 연결됩니다.
 - 기본 모델명은 `.env.example`과 같은 `gpt-4.1-mini`입니다.
 - 설정 우선순위는 shell 환경 변수, repo root `.env`, 코드 기본값 순서입니다.
 - unit test는 API를 호출하지 않고, integration test만 opt-in으로 실제 OpenAI API를 호출합니다.
@@ -96,7 +96,7 @@ go run ./cmd/ch03-openai-chatmodel 'What does Eino ChatModel do?'
 integration test:
 
 ```bash
-go test ./internal/llm -run TestOpenAIChatModelIntegration -count=1 -v
+go test ./internal/llm/openai -run TestOpenAIChatModelIntegration -count=1 -v
 ```
 
 외부 API 없이 전체 테스트:
@@ -133,13 +133,13 @@ go run ./cmd/ch04-tool-calling '12 * (7 + 3)'
 테스트 명령:
 
 ```bash
-RUN_EINO_INTEGRATION=0 go test ./internal/llm ./internal/tools
+RUN_EINO_INTEGRATION=0 go test ./internal/llm/toolcalling ./internal/tools
 ```
 
 실제 OpenAI tool calling integration test:
 
 ```bash
-RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIToolCallingIntegration -count=1 -v
+RUN_EINO_INTEGRATION=1 go test ./internal/llm/toolcalling -run TestOpenAIToolCallingIntegration -count=1 -v
 ```
 
 다음 장에서 할 일:
@@ -174,13 +174,13 @@ go run ./cmd/ch05-chain 'How does Chain work?'
 테스트 명령:
 
 ```bash
-go test ./internal/llm -run 'TestChatChainService|TestNewChatChainService' -count=1
+go test ./internal/llm/chain -run 'TestService|TestNewService' -count=1
 ```
 
 실제 OpenAI Chain integration test:
 
 ```bash
-RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIChatChainIntegration -count=1 -v
+RUN_EINO_INTEGRATION=1 go test ./internal/llm/chain -run TestOpenAIChatChainIntegration -count=1 -v
 ```
 
 다음 장에서 할 일:
@@ -228,7 +228,7 @@ Node 주석:
 - `ChatTemplate`: system, history, user question 메시지 목록을 만듭니다.
 - `trace_prompt`: CLI와 테스트에서 prompt message를 관찰하기 위한 추적 node입니다.
 - `ChatModel`: 일반 질문 branch에서만 실제 model을 호출합니다.
-- `model_output`: model response를 `AssistantGraphResult`로 포장합니다.
+- `model_output`: model response를 `graph.Result`로 포장합니다.
 
 실행 명령:
 
@@ -247,13 +247,13 @@ go run ./cmd/ch06-graph 'calculate: 7 * (8 + 2)'
 테스트 명령:
 
 ```bash
-go test ./internal/llm -run 'TestAssistantGraph|TestNewAssistantGraph' -count=1
+go test ./internal/llm/graph -run 'TestAssistantGraph|TestNewService' -count=1
 ```
 
 실제 OpenAI Graph integration test:
 
 ```bash
-RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIAssistantGraphIntegration -count=1 -v
+RUN_EINO_INTEGRATION=1 go test ./internal/llm/graph -run TestOpenAIAssistantGraphIntegration -count=1 -v
 ```
 
 다음 장에서 할 일:
@@ -273,8 +273,8 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIAssistantGraphInteg
 - Streaming은 `Generate`처럼 완성된 assistant message를 기다리지 않고, 생성되는 조각을 순서대로 읽습니다.
 - `StreamReader`는 한 번만 읽을 수 있고, 사용 후 `Close()`해야 합니다.
 - 이번 장의 흐름은 `question + history -> ChatTemplate -> ChatModel.Stream -> StreamReader.Recv loop`입니다.
-- `ChatService.AskStreamingWithHistory`는 stream chunk를 모아 `StreamingResult`로 반환합니다.
-- `ChatService.StreamWithHistory`는 CLI처럼 직접 `Recv()` loop를 제어하고 싶을 때 사용합니다.
+- `streaming.Service.AskWithHistory`는 stream chunk를 모아 `streaming.Result`로 반환합니다.
+- `streaming.Service.StreamWithHistory`는 CLI처럼 직접 `Recv()` loop를 제어하고 싶을 때 사용합니다.
 
 Streaming 다이어그램:
 
@@ -301,14 +301,14 @@ go run ./cmd/ch07-streaming 'How does Eino streaming work?'
 테스트 명령:
 
 ```bash
-go test ./internal/llm -run 'TestChatService.*Streaming|TestChatServiceStream' -count=1
+go test ./internal/llm/streaming -run 'TestChatService.*|TestCollectMessageStream' -count=1
 go test ./internal/fake -run TestStreamingChatModel -count=1
 ```
 
 실제 OpenAI Streaming integration test:
 
 ```bash
-RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIChatStreamingIntegration -count=1 -v
+RUN_EINO_INTEGRATION=1 go test ./internal/llm/streaming -run TestOpenAIChatStreamingIntegration -count=1 -v
 ```
 
 다음 장에서 할 일:
@@ -384,13 +384,13 @@ go run ./cmd/ch08-callback-observability 'ChatTemplate과 ChatModel 실행을 ca
 테스트 명령:
 
 ```bash
-go test ./internal/llm -run 'TestRunObservableChatChain' -count=1
+go test ./internal/llm/observability -run 'TestRunObservableChatChain' -count=1
 ```
 
 실제 OpenAI Callback integration test:
 
 ```bash
-RUN_EINO_INTEGRATION=1 go test ./internal/llm -run TestOpenAIObservableChatChainIntegration -count=1 -v
+RUN_EINO_INTEGRATION=1 go test ./internal/llm/observability -run TestOpenAIObservableChatChainIntegration -count=1 -v
 ```
 
 다음 장에서 할 일:

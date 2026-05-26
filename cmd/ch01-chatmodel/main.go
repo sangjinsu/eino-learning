@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/sangjinsu/eino-learning/internal/fake"
-	"github.com/sangjinsu/eino-learning/internal/llm"
+	"github.com/sangjinsu/eino-learning/internal/llm/chat"
 )
 
 func main() {
@@ -18,7 +18,7 @@ func main() {
 	}
 
 	chatModel := fake.NewChatModel("Eino helps build testable LLM applications in Go.")
-	service := llm.NewChatService(chatModel)
+	service := chat.NewService(chatModel)
 
 	answer, err := service.Ask(context.Background(), question)
 	if err != nil {

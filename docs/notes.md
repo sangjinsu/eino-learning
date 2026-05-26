@@ -3,7 +3,7 @@
 ## Chapter 01
 
 - fake ChatModel은 외부 API 없이 Eino의 `ChatModel` 형태를 이해하기 위한 학습용 구현입니다.
-- `ChatService`는 `model.BaseChatModel`에만 의존하므로 나중에 OpenAI ChatModel로 교체할 수 있습니다.
+- `chat.Service`는 `model.BaseChatModel`에만 의존하므로 나중에 OpenAI ChatModel로 교체할 수 있습니다.
 - `OPENAI_API_KEY`는 Chapter 03 integration test에서만 사용합니다.
 
 ## Chapter 02
@@ -11,12 +11,12 @@
 - `prompt.ChatTemplate`은 변수 map을 받아 `[]*schema.Message`를 생성합니다.
 - 이번 장의 기본 template은 system prompt, optional history, user question 순서로 메시지를 만듭니다.
 - `schema.MessagesPlaceholder("history", true)`를 사용하면 history가 없을 때도 같은 template을 재사용할 수 있습니다.
-- `ChatService`는 template이 만든 메시지 목록을 `ChatModel.Generate`에 전달합니다.
+- `chat.Service`는 template이 만든 메시지 목록을 `ChatModel.Generate`에 전달합니다.
 
 ## Chapter 03
 
 - OpenAI provider는 `github.com/cloudwego/eino-ext/components/model/openai`의 `NewChatModel`로 생성합니다.
-- `ChatService`는 provider 종류를 모르고 `model.BaseChatModel`만 사용하므로 fake model과 OpenAI model을 같은 경계로 다룰 수 있습니다.
+- `chat.Service`는 provider 종류를 모르고 `model.BaseChatModel`만 사용하므로 fake model과 OpenAI model을 같은 경계로 다룰 수 있습니다.
 - `RUN_EINO_INTEGRATION=1`이 없으면 실제 OpenAI API 호출 test와 CLI 실행은 건너뜁니다.
 - `.env`는 repo root에서 자동으로 읽으며, shell 환경 변수가 있으면 `.env`보다 우선합니다.
 - API key는 `OPENAI_API_KEY` 환경 변수에서 읽고 코드, 테스트, fixture에 저장하지 않습니다.
@@ -37,7 +37,7 @@
 - `compose.NewChain[I, O]`는 입력 타입과 출력 타입을 가진 선형 pipeline builder입니다.
 - `AppendChatTemplate`은 `map[string]any` 입력을 `[]*schema.Message`로 바꾸고, `AppendChatModel`은 그 메시지를 model에 전달해 `*schema.Message`를 만듭니다.
 - Chain은 `Compile(ctx)` 이후 `Runnable`이 되며, `Invoke(ctx, input)`으로 전체 component 순서를 실행합니다.
-- Chapter 5의 `ChatChainService`는 기존 manual `ChatService`와 같은 prompt/model 흐름을 Eino Chain으로 표현합니다.
+- Chapter 5의 `chain.Service`는 기존 manual `chat.Service`와 같은 prompt/model 흐름을 Eino Chain으로 표현합니다.
 - Chapter 5 CLI는 `.env` 또는 shell의 `OPENAI_API_KEY`로 실제 OpenAI ChatModel을 Chain에 연결합니다.
 - `RunChatChainWithTrace`는 trace lambda를 Chain 중간에 넣어 input variables, prompt messages, model response를 관찰합니다.
 - Unit test는 fake model로 빠르게 검증하고, 실제 OpenAI 호출은 `RUN_EINO_INTEGRATION=1`일 때만 실행합니다.
@@ -72,8 +72,8 @@ flowchart TD
 - `StreamReader.Recv()`를 반복 호출하면 assistant message chunk가 순서대로 나오고, `io.EOF`가 나오면 stream이 끝난 것입니다.
 - `StreamReader`는 한 번만 읽을 수 있으므로 여러 소비자가 필요하면 읽기 전에 `Copy`를 사용해야 합니다.
 - stream을 다 읽었거나 중간에 중단하더라도 `Close()`를 호출해야 합니다.
-- Chapter 7의 `ChatService.StreamWithHistory`는 `ChatTemplate`이 만든 prompt messages를 `ChatModel.Stream`에 전달합니다.
-- `AskStreamingWithHistory`는 CLI가 아닌 test나 service code에서 쓰기 편하도록 chunk를 모아 `StreamingResult.Answer`를 만듭니다.
+- Chapter 7의 `streaming.Service.StreamWithHistory`는 `ChatTemplate`이 만든 prompt messages를 `ChatModel.Stream`에 전달합니다.
+- `streaming.Service.AskWithHistory`는 CLI가 아닌 test나 service code에서 쓰기 편하도록 chunk를 모아 `streaming.Result.Answer`를 만듭니다.
 - Unit test는 `fake.StreamingChatModel`로 빠르게 검증하고, 실제 OpenAI 호출은 `RUN_EINO_INTEGRATION=1`일 때만 실행합니다.
 
 ```mermaid

@@ -1,4 +1,4 @@
-package llm
+package openai
 
 import (
 	"errors"
@@ -9,43 +9,43 @@ import (
 	"github.com/joho/godotenv"
 )
 
-const DefaultOpenAIModel = "gpt-4.1-mini"
+const DefaultModel = "gpt-4.1-mini"
 
 var (
-	ErrOpenAIAPIKeyRequired = errors.New("openai config: OPENAI_API_KEY is required")
-	ErrOpenAIModelRequired  = errors.New("openai config: OPENAI_MODEL must not be blank")
+	ErrAPIKeyRequired = errors.New("openai config: OPENAI_API_KEY is required")
+	ErrModelRequired  = errors.New("openai config: OPENAI_MODEL must not be blank")
 )
 
-type OpenAIConfig struct {
+type Config struct {
 	APIKey  string
 	Model   string
 	BaseURL string
 }
 
-func LoadOpenAIConfigFromEnv() OpenAIConfig {
+func LoadConfigFromEnv() Config {
 	dotEnv := loadDotEnv()
 	model := envValue("OPENAI_MODEL", dotEnv)
 	if model == "" {
-		model = DefaultOpenAIModel
+		model = DefaultModel
 	}
 
-	return OpenAIConfig{
+	return Config{
 		APIKey:  envValue("OPENAI_API_KEY", dotEnv),
 		Model:   model,
 		BaseURL: envValue("OPENAI_BASE_URL", dotEnv),
 	}
 }
 
-func OpenAIIntegrationEnabled() bool {
+func IntegrationEnabled() bool {
 	return envValue("RUN_EINO_INTEGRATION", loadDotEnv()) == "1"
 }
 
-func (c OpenAIConfig) Validate() error {
+func (c Config) Validate() error {
 	if strings.TrimSpace(c.APIKey) == "" {
-		return ErrOpenAIAPIKeyRequired
+		return ErrAPIKeyRequired
 	}
 	if strings.TrimSpace(c.Model) == "" {
-		return ErrOpenAIModelRequired
+		return ErrModelRequired
 	}
 
 	return nil

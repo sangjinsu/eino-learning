@@ -9,7 +9,9 @@ import (
 	"time"
 
 	"github.com/cloudwego/eino/schema"
-	"github.com/sangjinsu/eino-learning/internal/llm"
+	"github.com/sangjinsu/eino-learning/internal/llm/chain"
+	llmopenai "github.com/sangjinsu/eino-learning/internal/llm/openai"
+	"github.com/sangjinsu/eino-learning/internal/llm/prompting"
 )
 
 func main() {
@@ -18,7 +20,7 @@ func main() {
 		question = strings.Join(os.Args[1:], " ")
 	}
 
-	cfg := llm.LoadOpenAIConfigFromEnv()
+	cfg := llmopenai.LoadConfigFromEnv()
 	if err := cfg.Validate(); err != nil {
 		fmt.Println("OpenAI API key is not configured.")
 		fmt.Println("Set OPENAI_API_KEY in your shell or .env to run model-backed Chain.")
@@ -28,7 +30,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 
-	chatModel, err := llm.NewOpenAIChatModel(ctx, cfg)
+	chatModel, err := llmopenai.NewChatModel(ctx, cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -38,7 +40,7 @@ func main() {
 		schema.AssistantMessage("It added model-backed tool calling with a calculator tool.", nil),
 	}
 
-	trace, err := llm.RunChatChainWithTrace(ctx, chatModel, llm.DefaultChatTemplate(), question, history)
+	trace, err := chain.RunWithTrace(ctx, chatModel, prompting.DefaultChatTemplate(), question, history)
 	if err != nil {
 		log.Fatal(err)
 	}
