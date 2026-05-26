@@ -4,6 +4,17 @@
 
 상태: 완료
 
+대표 실행 예시:
+
+```bash
+go run ./cmd/ch01-chatmodel "Eino는 어떤 문제를 해결하나요?"
+```
+
+검증 포인트:
+
+- 외부 API 없이 fake ChatModel 응답이 출력됩니다.
+- `chat.Service`가 `model.BaseChatModel` 경계로 호출됩니다.
+
 완료 기준:
 
 - fake ChatModel 구현
@@ -14,6 +25,17 @@
 ## Chapter 02. Prompt Template과 Message 설계
 
 상태: 완료
+
+대표 실행 예시:
+
+```bash
+go run ./cmd/ch02-prompt-template 'Prompt Template은 어떤 메시지를 만드나요?'
+```
+
+검증 포인트:
+
+- system, history, user message 순서가 `messages sent to model`에 출력됩니다.
+- 현재 질문이 마지막 user message로 들어갑니다.
 
 완료 기준:
 
@@ -27,6 +49,17 @@
 
 상태: 완료
 
+대표 실행 예시:
+
+```bash
+go run ./cmd/ch03-openai-chatmodel 'Eino ChatModel은 어떤 역할인가요?'
+```
+
+검증 포인트:
+
+- integration flag가 꺼져 있으면 실제 API 호출 없이 설정 안내가 출력됩니다.
+- flag와 API key를 설정하면 같은 `chat.Service`가 OpenAI ChatModel을 사용합니다.
+
 완료 기준:
 
 - OpenAI ChatModel 설정 로더 구현
@@ -39,6 +72,23 @@
 ## Chapter 04. Tool Calling
 
 상태: 완료
+
+대표 실행 예시 (`OPENAI_API_KEY` 필요):
+
+```bash
+go run ./cmd/ch04-tool-calling '15 * (2 + 6)'
+```
+
+API key 없이 확인할 명령:
+
+```bash
+RUN_EINO_INTEGRATION=0 go test ./internal/llm/toolcalling ./internal/tools
+```
+
+검증 포인트:
+
+- model이 만든 `ToolCall`과 calculator가 반환한 `ToolMessage`를 분리해서 확인합니다.
+- final answer는 tool result를 history에 붙인 뒤 다시 생성됩니다.
 
 완료 기준:
 
@@ -55,6 +105,23 @@
 
 상태: 완료
 
+대표 실행 예시 (`OPENAI_API_KEY` 필요):
+
+```bash
+go run ./cmd/ch05-chain 'Chain은 Prompt Template과 ChatModel을 어떻게 연결하나요?'
+```
+
+API key 없이 확인할 명령:
+
+```bash
+go test ./internal/llm/chain -run 'TestService|TestNewService' -count=1
+```
+
+검증 포인트:
+
+- input variables, ChatTemplate output, ChatModel output trace가 순서대로 출력됩니다.
+- 기존 prompt/model 흐름이 compiled `Runnable`로 실행됩니다.
+
 완료 기준:
 
 - `compose.NewChain`으로 `ChatTemplate -> ChatModel` 선형 pipeline 구현
@@ -68,6 +135,24 @@
 ## Chapter 06. Graph 구성
 
 상태: 완료
+
+대표 실행 예시 (`OPENAI_API_KEY` 필요):
+
+```bash
+go run ./cmd/ch06-graph 'calculate: 9 * (3 + 4)'
+go run ./cmd/ch06-graph 'Graph는 Chain과 언제 다르게 쓰나요?'
+```
+
+API key 없이 확인할 명령:
+
+```bash
+go test ./internal/llm/graph -run 'TestAssistantGraph|TestNewService' -count=1
+```
+
+검증 포인트:
+
+- `selected route`로 calculator branch와 chat branch를 구분합니다.
+- calculator branch는 CLI config 검증 이후 route가 선택되면 model 호출 없이 종료됩니다.
 
 완료 기준:
 
@@ -83,6 +168,23 @@
 
 상태: 완료
 
+대표 실행 예시 (`OPENAI_API_KEY` 필요):
+
+```bash
+go run ./cmd/ch07-streaming 'Streaming은 Generate와 무엇이 다른가요?'
+```
+
+API key 없이 확인할 명령:
+
+```bash
+go test ./internal/llm/streaming -run 'TestChatService.*|TestCollectMessageStream' -count=1
+```
+
+검증 포인트:
+
+- `stream chunks`가 먼저 출력되고, 마지막에 이어 붙인 `final answer`가 출력됩니다.
+- `received chunks`로 Recv loop가 content를 받은 횟수를 확인합니다.
+
 완료 기준:
 
 - `streaming.Service.StreamWithHistory`로 `ChatTemplate -> ChatModel.Stream` 흐름 구현
@@ -96,6 +198,23 @@
 ## Chapter 08. Callback과 Observability
 
 상태: 완료
+
+대표 실행 예시 (`OPENAI_API_KEY` 필요):
+
+```bash
+go run ./cmd/ch08-callback-observability 'ChatTemplate과 ChatModel 실행을 callback으로 어떻게 관찰하나요?'
+```
+
+API key 없이 확인할 명령:
+
+```bash
+go test ./internal/llm/observability -run 'TestRunObservableChatChain' -count=1
+```
+
+검증 포인트:
+
+- `callback events`에서 Chain, ChatTemplate, ChatModel start/end event를 확인합니다.
+- callback은 답변 생성 흐름을 바꾸지 않고 관찰 정보만 남깁니다.
 
 완료 기준:
 
@@ -111,6 +230,23 @@
 ## Chapter 09. RAG 기초
 
 상태: 완료
+
+대표 실행 예시 (`OPENAI_API_KEY` 필요):
+
+```bash
+go run ./cmd/ch09-rag 'RAG는 검색된 문서를 어떻게 답변 근거로 사용하나요?'
+```
+
+API key 없이 확인할 명령:
+
+```bash
+go test ./cmd/ch09-rag ./internal/llm/rag -count=1
+```
+
+검증 포인트:
+
+- `retrieved sources`로 검색 근거를 먼저 확인합니다.
+- `prompt context summary`로 검색 문서가 prompt context에 들어갔는지 확인합니다.
 
 완료 기준:
 
