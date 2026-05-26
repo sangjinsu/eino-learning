@@ -108,6 +108,20 @@
 - OpenAI Callback integration test 추가
 - 기본 `go test ./...`는 외부 API 없이 통과
 
+## Chapter 09. RAG 기초
+
+상태: 완료
+
+완료 기준:
+
+- Markdown/Text 예시 문서를 `schema.Document`로 읽는 Chapter 9 CLI 추가
+- in-memory keyword retriever로 관련 문서를 검색
+- 검색 context를 prompt에 넣고 ChatModel 답변 생성
+- CLI 출력 순서가 retrieved sources -> prompt context summary -> final answer
+- PDF parser, embedding provider, vector store는 v1 범위에서 제외
+- OpenAI RAG integration test 추가
+- 기본 `go test ./...`는 외부 API 없이 통과
+
 ## 다음 작업
 
-- Chapter 09에서 RAG 기초를 다룹니다.
+- Chapter 10에서 ReAct Agent를 다룹니다.

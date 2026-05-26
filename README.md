@@ -396,3 +396,44 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm/observability -run TestOpenAIObser
 다음 장에서 할 일:
 
 - Chapter 09에서 RAG 기초를 다룹니다.
+
+## Chapter 09. RAG 기초
+
+이번 장의 목표:
+
+- Eino `Retriever`가 질문에 맞는 `schema.Document`를 반환하는 흐름을 이해합니다.
+- Markdown/Text 예시 문서를 in-memory keyword retriever로 검색합니다.
+- 검색된 문서 context를 prompt에 넣고 ChatModel 답변과 sources를 함께 출력합니다.
+- RAG v1 범위를 작게 유지해 retrieval, prompt grounding, source 표시의 기본 구조에 집중합니다.
+
+핵심 개념:
+
+- RAG 흐름은 `question -> Retriever -> context prompt -> ChatModel -> answer + sources`입니다.
+- `cmd/ch09-rag`는 `testdata/docs/ch09-rag`의 `.md`, `.txt` 파일을 읽어 `schema.Document`로 바꿉니다.
+- 문서 title/source metadata는 최종 출력의 retrieved sources와 prompt context summary에 사용합니다.
+- v1에서는 PDF parser, embedding provider, vector store를 사용하지 않습니다. 이런 기능은 후속 chapter 또는 확장 과제로 남깁니다.
+
+실행 명령:
+
+```bash
+go run ./cmd/ch09-rag 'Chapter 8 callback은 RAG와 어떻게 연결될 수 있나요?'
+```
+
+`OPENAI_API_KEY`는 shell 환경 변수 또는 repository root의 `.env`에서 읽습니다.
+
+테스트 명령:
+
+```bash
+go test ./cmd/ch09-rag ./internal/llm/rag -count=1
+RUN_EINO_INTEGRATION=0 go test ./...
+```
+
+실제 OpenAI RAG integration test:
+
+```bash
+RUN_EINO_INTEGRATION=1 go test ./internal/llm/rag -run TestOpenAIRAGIntegration -count=1 -v
+```
+
+다음 장에서 할 일:
+
+- Chapter 10에서 ReAct Agent를 다룹니다.
