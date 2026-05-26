@@ -10,3 +10,4 @@ coverage.html
 .DS_Store
 .idea/
 .vscode/
+.omc/
