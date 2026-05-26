@@ -30,10 +30,17 @@ cmd/
 internal/
   fake/
   llm/
+    prompting/
+    chat/
+    openai/
+    toolcalling/
+    chain/
+    graph/
+    streaming/
+    observability/
   tools/
   rag/
   agent/
-  observability/
 docs/
   learning-roadmap.md
   progress.md

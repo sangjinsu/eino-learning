@@ -1,4 +1,4 @@
-package llm
+package graph
 
 import (
 	"context"
@@ -11,12 +11,13 @@ import (
 	"github.com/cloudwego/eino/components/prompt"
 	"github.com/cloudwego/eino/compose"
 	"github.com/cloudwego/eino/schema"
+	"github.com/sangjinsu/eino-learning/internal/llm/prompting"
 	"github.com/sangjinsu/eino-learning/internal/tools"
 )
 
 const (
-	GraphRouteChat       = "chat"
-	GraphRouteCalculator = "calculator"
+	RouteChat       = "chat"
+	RouteCalculator = "calculator"
 )
 
 // 노드 이름을 상수로 고정해 CLI 출력, 테스트, 문서가 같은 그래프를 설명하게 합니다.
@@ -31,18 +32,18 @@ const (
 )
 
 var (
-	ErrGraphModelRequired    = errors.New("assistant graph: model is required")
-	ErrGraphTemplateRequired = errors.New("assistant graph: template is required")
+	ErrModelRequired    = errors.New("assistant graph: model is required")
+	ErrTemplateRequired = errors.New("assistant graph: template is required")
 )
 
-type AssistantGraphInput struct {
+type Input struct {
 	Question string
 	History  []*schema.Message
 }
 
-// AssistantGraphResult는 두 graph branch가 공유하는 단일 출력 타입입니다.
+// Result는 두 graph branch가 공유하는 단일 출력 타입입니다.
 // 선택된 route에서 생성한 필드만 채워집니다.
-type AssistantGraphResult struct {
+type Result struct {
 	Route          string
 	Answer         string
 	Calculation    *tools.CalculatorOutput
@@ -50,7 +51,7 @@ type AssistantGraphResult struct {
 	ModelResponse  *schema.Message
 }
 
-type AssistantGraphService struct {
+type Service struct {
 	model    model.BaseChatModel
 	template prompt.ChatTemplate
 }
@@ -64,45 +65,45 @@ type assistantGraphState struct {
 	Expression string
 }
 
-func NewAssistantGraphService(ctx context.Context, chatModel model.BaseChatModel) (*AssistantGraphService, error) {
-	return NewAssistantGraphServiceWithTemplate(ctx, chatModel, DefaultChatTemplate())
+func NewService(ctx context.Context, chatModel model.BaseChatModel) (*Service, error) {
+	return NewServiceWithTemplate(ctx, chatModel, prompting.DefaultChatTemplate())
 }
 
-func NewAssistantGraphServiceWithTemplate(_ context.Context, chatModel model.BaseChatModel, template prompt.ChatTemplate) (*AssistantGraphService, error) {
+func NewServiceWithTemplate(_ context.Context, chatModel model.BaseChatModel, template prompt.ChatTemplate) (*Service, error) {
 	if chatModel == nil {
-		return nil, ErrGraphModelRequired
+		return nil, ErrModelRequired
 	}
 	if template == nil {
-		return nil, ErrGraphTemplateRequired
+		return nil, ErrTemplateRequired
 	}
 
-	return &AssistantGraphService{
+	return &Service{
 		model:    chatModel,
 		template: template,
 	}, nil
 }
 
-func (s *AssistantGraphService) Run(ctx context.Context, input AssistantGraphInput) (*AssistantGraphResult, error) {
-	if strings.TrimSpace(input.Question) == "" {
-		return nil, ErrBlankQuestion
+func (s *Service) Run(ctx context.Context, input Input) (*Result, error) {
+	if prompting.IsBlankQuestion(input.Question) {
+		return nil, prompting.ErrBlankQuestion
 	}
 	if s == nil || s.model == nil {
-		return nil, ErrGraphModelRequired
+		return nil, ErrModelRequired
 	}
 	if s.template == nil {
-		return nil, ErrGraphTemplateRequired
+		return nil, ErrTemplateRequired
 	}
 
-	return RunAssistantGraph(ctx, s.model, s.template, input)
+	return Run(ctx, s.model, s.template, input)
 }
 
-func RunAssistantGraph(ctx context.Context, chatModel model.BaseChatModel, template prompt.ChatTemplate, input AssistantGraphInput) (*AssistantGraphResult, error) {
-	if strings.TrimSpace(input.Question) == "" {
-		return nil, ErrBlankQuestion
+func Run(ctx context.Context, chatModel model.BaseChatModel, template prompt.ChatTemplate, input Input) (*Result, error) {
+	if prompting.IsBlankQuestion(input.Question) {
+		return nil, prompting.ErrBlankQuestion
 	}
 
-	trace := &AssistantGraphResult{}
-	runnable, err := NewAssistantGraph(ctx, chatModel, template, trace)
+	trace := &Result{}
+	runnable, err := NewRunnable(ctx, chatModel, template, trace)
 	if err != nil {
 		return nil, err
 	}
@@ -118,29 +119,29 @@ func RunAssistantGraph(ctx context.Context, chatModel model.BaseChatModel, templ
 	return result, nil
 }
 
-func NewAssistantGraph(ctx context.Context, chatModel model.BaseChatModel, template prompt.ChatTemplate, trace *AssistantGraphResult) (compose.Runnable[AssistantGraphInput, *AssistantGraphResult], error) {
+func NewRunnable(ctx context.Context, chatModel model.BaseChatModel, template prompt.ChatTemplate, trace *Result) (compose.Runnable[Input, *Result], error) {
 	if chatModel == nil {
-		return nil, ErrGraphModelRequired
+		return nil, ErrModelRequired
 	}
 	if template == nil {
-		return nil, ErrGraphTemplateRequired
+		return nil, ErrTemplateRequired
 	}
 	if trace == nil {
-		trace = &AssistantGraphResult{}
+		trace = &Result{}
 	}
 
 	// 그래프 모양:
 	// START -> route
 	// route -> calculator -> END
 	// route -> prepare_prompt -> prompt -> trace_prompt -> model -> model_output -> END
-	graph := compose.NewGraph[AssistantGraphInput, *AssistantGraphResult]()
+	graph := compose.NewGraph[Input, *Result]()
 
 	// route node는 입력을 정리하고 실행할 branch를 결정합니다.
 	if err := graph.AddLambdaNode(graphNodeRoute, compose.InvokableLambda(routeAssistantGraph)); err != nil {
 		return nil, err
 	}
 	// calculator branch는 deterministic local 작업만 수행하며 의도적으로 model을 호출하지 않습니다.
-	if err := graph.AddLambdaNode(graphNodeCalculator, compose.InvokableLambda(func(ctx context.Context, state *assistantGraphState) (*AssistantGraphResult, error) {
+	if err := graph.AddLambdaNode(graphNodeCalculator, compose.InvokableLambda(func(ctx context.Context, state *assistantGraphState) (*Result, error) {
 		return runCalculatorGraphNode(ctx, state, trace)
 	})); err != nil {
 		return nil, err
@@ -155,7 +156,7 @@ func NewAssistantGraph(ctx context.Context, chatModel model.BaseChatModel, templ
 	// trace node는 테스트와 CLI 예제에서 ChatTemplate 출력을 관찰할 수 있게 합니다.
 	if err := graph.AddLambdaNode(graphNodeTracePrompt, compose.InvokableLambda(func(ctx context.Context, messages []*schema.Message) ([]*schema.Message, error) {
 		_ = ctx
-		trace.PromptMessages = cloneMessages(messages)
+		trace.PromptMessages = prompting.CloneMessages(messages)
 		return messages, nil
 	})); err != nil {
 		return nil, err
@@ -164,9 +165,9 @@ func NewAssistantGraph(ctx context.Context, chatModel model.BaseChatModel, templ
 		return nil, err
 	}
 	// 마지막 chat node는 model message를 graph의 공통 결과 타입으로 감쌉니다.
-	if err := graph.AddLambdaNode(graphNodeModelOutput, compose.InvokableLambda(func(ctx context.Context, message *schema.Message) (*AssistantGraphResult, error) {
+	if err := graph.AddLambdaNode(graphNodeModelOutput, compose.InvokableLambda(func(ctx context.Context, message *schema.Message) (*Result, error) {
 		_ = ctx
-		trace.Route = GraphRouteChat
+		trace.Route = RouteChat
 		trace.ModelResponse = message
 		if message != nil {
 			trace.Answer = message.Content
@@ -182,7 +183,7 @@ func NewAssistantGraph(ctx context.Context, chatModel model.BaseChatModel, templ
 	// Chapter 6의 핵심 학습 포인트입니다. runtime input이 다음 node를 선택합니다.
 	if err := graph.AddBranch(graphNodeRoute, compose.NewGraphBranch(func(ctx context.Context, state *assistantGraphState) (string, error) {
 		_ = ctx
-		if state.Route == GraphRouteCalculator {
+		if state.Route == RouteCalculator {
 			return graphNodeCalculator, nil
 		}
 		return graphNodePrepare, nil
@@ -220,23 +221,23 @@ func NewAssistantGraph(ctx context.Context, chatModel model.BaseChatModel, templ
 	return runnable, nil
 }
 
-func routeAssistantGraph(_ context.Context, input AssistantGraphInput) (*assistantGraphState, error) {
+func routeAssistantGraph(_ context.Context, input Input) (*assistantGraphState, error) {
 	question := strings.TrimSpace(input.Question)
 	if question == "" {
-		return nil, ErrBlankQuestion
+		return nil, prompting.ErrBlankQuestion
 	}
 
 	// 기본값은 model-backed chat route입니다. 명확히 계산 가능한 질문일 때만 계산 route로 바꿉니다.
-	route := GraphRouteChat
+	route := RouteChat
 	expression := ""
 	if candidate, ok := ExtractCalculationExpression(question); ok {
-		route = GraphRouteCalculator
+		route = RouteCalculator
 		expression = candidate
 	}
 
 	return &assistantGraphState{
 		Question:   question,
-		History:    cloneMessages(input.History),
+		History:    prompting.CloneMessages(input.History),
 		Route:      route,
 		Expression: expression,
 	}, nil
@@ -248,10 +249,10 @@ func prepareGraphPromptVariables(_ context.Context, state *assistantGraphState) 
 	}
 
 	// Chapter 5 Chain과 같은 template 입력 형태를 재사용합니다.
-	return chatChainInput(state.Question, state.History), nil
+	return prompting.ChatInput(state.Question, state.History), nil
 }
 
-func runCalculatorGraphNode(ctx context.Context, state *assistantGraphState, trace *AssistantGraphResult) (*AssistantGraphResult, error) {
+func runCalculatorGraphNode(ctx context.Context, state *assistantGraphState, trace *Result) (*Result, error) {
 	if state == nil {
 		return nil, errors.New("assistant graph: state is required")
 	}
@@ -262,8 +263,8 @@ func runCalculatorGraphNode(ctx context.Context, state *assistantGraphState, tra
 	}
 
 	// calculator branch는 graph 결과를 즉시 반환하므로 downstream chat node가 실행되지 않습니다.
-	result := &AssistantGraphResult{
-		Route:       GraphRouteCalculator,
+	result := &Result{
+		Route:       RouteCalculator,
 		Answer:      formatCalculationAnswer(calculation),
 		Calculation: &calculation,
 	}

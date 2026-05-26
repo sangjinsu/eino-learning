@@ -1,4 +1,4 @@
-package llm
+package openai
 
 import (
 	"errors"
@@ -7,35 +7,35 @@ import (
 	"testing"
 )
 
-func TestLoadOpenAIConfigFromEnvUsesSafeDefaults(t *testing.T) {
+func TestLoadConfigFromEnvUsesSafeDefaults(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "")
 	t.Setenv("OPENAI_MODEL", "")
 	t.Setenv("OPENAI_BASE_URL", "")
 	t.Setenv("RUN_EINO_INTEGRATION", "")
 
-	got := LoadOpenAIConfigFromEnv()
+	got := LoadConfigFromEnv()
 
 	if got.APIKey != "" {
 		t.Fatal("API key should be empty when OPENAI_API_KEY is not set")
 	}
-	if got.Model != DefaultOpenAIModel {
-		t.Fatalf("model = %q, want %q", got.Model, DefaultOpenAIModel)
+	if got.Model != DefaultModel {
+		t.Fatalf("model = %q, want %q", got.Model, DefaultModel)
 	}
 	if got.BaseURL != "" {
 		t.Fatalf("base URL = %q, want empty", got.BaseURL)
 	}
-	if OpenAIIntegrationEnabled() {
+	if IntegrationEnabled() {
 		t.Fatal("integration should be disabled unless RUN_EINO_INTEGRATION=1")
 	}
 }
 
-func TestLoadOpenAIConfigFromEnvReadsConfiguredValues(t *testing.T) {
+func TestLoadConfigFromEnvReadsConfiguredValues(t *testing.T) {
 	t.Setenv("OPENAI_API_KEY", "test-key")
 	t.Setenv("OPENAI_MODEL", "gpt-test")
 	t.Setenv("OPENAI_BASE_URL", "https://example.test/v1")
 	t.Setenv("RUN_EINO_INTEGRATION", "1")
 
-	got := LoadOpenAIConfigFromEnv()
+	got := LoadConfigFromEnv()
 
 	if got.APIKey != "test-key" {
 		t.Fatalf("API key = %q, want configured key", got.APIKey)
@@ -46,12 +46,12 @@ func TestLoadOpenAIConfigFromEnvReadsConfiguredValues(t *testing.T) {
 	if got.BaseURL != "https://example.test/v1" {
 		t.Fatalf("base URL = %q, want configured URL", got.BaseURL)
 	}
-	if !OpenAIIntegrationEnabled() {
+	if !IntegrationEnabled() {
 		t.Fatal("integration should be enabled when RUN_EINO_INTEGRATION=1")
 	}
 }
 
-func TestLoadOpenAIConfigFromEnvReadsDotEnvFromProjectRoot(t *testing.T) {
+func TestLoadConfigFromEnvReadsDotEnvFromProjectRoot(t *testing.T) {
 	root := t.TempDir()
 	nested := filepath.Join(root, "internal", "llm")
 	if err := os.MkdirAll(nested, 0o755); err != nil {
@@ -67,7 +67,7 @@ func TestLoadOpenAIConfigFromEnvReadsDotEnvFromProjectRoot(t *testing.T) {
 	t.Chdir(nested)
 	unsetEnv(t, "OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BASE_URL", "RUN_EINO_INTEGRATION")
 
-	got := LoadOpenAIConfigFromEnv()
+	got := LoadConfigFromEnv()
 
 	if got.APIKey != "dotenv-key" {
 		t.Fatalf("API key = %q, want dotenv-key", got.APIKey)
@@ -78,30 +78,30 @@ func TestLoadOpenAIConfigFromEnvReadsDotEnvFromProjectRoot(t *testing.T) {
 	if got.BaseURL != "https://dotenv.test/v1" {
 		t.Fatalf("base URL = %q, want dotenv URL", got.BaseURL)
 	}
-	if !OpenAIIntegrationEnabled() {
+	if !IntegrationEnabled() {
 		t.Fatal("integration should be enabled from .env")
 	}
 }
 
-func TestOpenAIConfigValidateRequiresAPIKeyAndModel(t *testing.T) {
+func TestConfigValidateRequiresAPIKeyAndModel(t *testing.T) {
 	tests := []struct {
 		name string
-		cfg  OpenAIConfig
+		cfg  Config
 		want error
 	}{
 		{
 			name: "blank API key",
-			cfg:  OpenAIConfig{Model: DefaultOpenAIModel},
-			want: ErrOpenAIAPIKeyRequired,
+			cfg:  Config{Model: DefaultModel},
+			want: ErrAPIKeyRequired,
 		},
 		{
 			name: "blank model",
-			cfg:  OpenAIConfig{APIKey: "test-key"},
-			want: ErrOpenAIModelRequired,
+			cfg:  Config{APIKey: "test-key"},
+			want: ErrModelRequired,
 		},
 		{
 			name: "valid config",
-			cfg:  OpenAIConfig{APIKey: "test-key", Model: DefaultOpenAIModel},
+			cfg:  Config{APIKey: "test-key", Model: DefaultModel},
 			want: nil,
 		},
 	}

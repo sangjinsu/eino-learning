@@ -9,7 +9,8 @@ import (
 	"time"
 
 	"github.com/cloudwego/eino/schema"
-	"github.com/sangjinsu/eino-learning/internal/llm"
+	"github.com/sangjinsu/eino-learning/internal/llm/graph"
+	llmopenai "github.com/sangjinsu/eino-learning/internal/llm/openai"
 )
 
 func main() {
@@ -21,7 +22,7 @@ func main() {
 		questions = []string{strings.Join(os.Args[1:], " ")}
 	}
 
-	cfg := llm.LoadOpenAIConfigFromEnv()
+	cfg := llmopenai.LoadConfigFromEnv()
 	if err := cfg.Validate(); err != nil {
 		fmt.Println("OpenAI API key is not configured.")
 		fmt.Println("Set OPENAI_API_KEY in your shell or .env to run model-backed Graph.")
@@ -31,11 +32,11 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
-	chatModel, err := llm.NewOpenAIChatModel(ctx, cfg)
+	chatModel, err := llmopenai.NewChatModel(ctx, cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	service, err := llm.NewAssistantGraphService(ctx, chatModel)
+	service, err := graph.NewService(ctx, chatModel)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -55,7 +56,7 @@ func main() {
 			fmt.Println()
 			fmt.Println("---")
 		}
-		result, err := service.Run(ctx, llm.AssistantGraphInput{
+		result, err := service.Run(ctx, graph.Input{
 			Question: question,
 			History:  history,
 		})
@@ -68,11 +69,11 @@ func main() {
 		fmt.Printf("selected route: %s\n", result.Route)
 
 		switch result.Route {
-		case llm.GraphRouteCalculator:
+		case graph.RouteCalculator:
 			fmt.Println("calculator output:")
 			fmt.Printf("- expression=%s\n", result.Calculation.Expression)
 			fmt.Printf("- result=%g\n", result.Calculation.Result)
-		case llm.GraphRouteChat:
+		case graph.RouteChat:
 			fmt.Println("ChatTemplate output messages:")
 			for j, msg := range result.PromptMessages {
 				fmt.Printf("- message[%d] role=%s content=%s\n", j, msg.Role, msg.Content)

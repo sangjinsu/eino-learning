@@ -1,18 +1,20 @@
-package llm
+package openai
 
 import (
 	"context"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/sangjinsu/eino-learning/internal/llm/chat"
 )
 
 func TestOpenAIChatModelIntegration(t *testing.T) {
-	if !OpenAIIntegrationEnabled() {
+	if !IntegrationEnabled() {
 		t.Skip("set RUN_EINO_INTEGRATION=1 to run OpenAI integration test")
 	}
 
-	cfg := LoadOpenAIConfigFromEnv()
+	cfg := LoadConfigFromEnv()
 	if strings.TrimSpace(cfg.APIKey) == "" {
 		t.Skip("set OPENAI_API_KEY to run OpenAI integration test")
 	}
@@ -20,12 +22,12 @@ func TestOpenAIChatModelIntegration(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 
-	chatModel, err := NewOpenAIChatModel(ctx, cfg)
+	chatModel, err := NewChatModel(ctx, cfg)
 	if err != nil {
-		t.Fatalf("NewOpenAIChatModel returned error: %v", err)
+		t.Fatalf("NewChatModel returned error: %v", err)
 	}
 
-	service := NewChatService(chatModel)
+	service := chat.NewService(chatModel)
 	answer, err := service.Ask(ctx, "In one short sentence, what does Eino ChatModel do?")
 	if err != nil {
 		t.Fatalf("Ask returned error: %v", err)

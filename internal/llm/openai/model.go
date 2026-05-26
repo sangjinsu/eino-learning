@@ -1,4 +1,4 @@
-package llm
+package openai
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"github.com/cloudwego/eino/components/model"
 )
 
-func NewOpenAIChatModel(ctx context.Context, cfg OpenAIConfig) (model.BaseChatModel, error) {
+func NewChatModel(ctx context.Context, cfg Config) (model.BaseChatModel, error) {
 	if err := cfg.Validate(); err != nil {
 		return nil, err
 	}

@@ -1,4 +1,4 @@
-package llm
+package observability
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 	"github.com/cloudwego/eino/components/model"
 	"github.com/cloudwego/eino/schema"
 	"github.com/sangjinsu/eino-learning/internal/fake"
+	"github.com/sangjinsu/eino-learning/internal/llm/prompting"
 )
 
 func TestRunObservableChatChainCapturesPromptAndModelEvents(t *testing.T) {
@@ -19,7 +20,7 @@ func TestRunObservableChatChainCapturesPromptAndModelEvents(t *testing.T) {
 		schema.AssistantMessage("Streaming을 다뤘습니다.", nil),
 	}
 
-	got, err := RunObservableChatChain(ctx, chatModel, DefaultChatTemplate(), "Chapter 8은 무엇을 추가하나요?", history)
+	got, err := RunObservableChatChain(ctx, chatModel, prompting.DefaultChatTemplate(), "Chapter 8은 무엇을 추가하나요?", history)
 	if err != nil {
 		t.Fatalf("RunObservableChatChain returned error: %v", err)
 	}
@@ -58,7 +59,7 @@ func TestRunObservableChatChainCapturesPromptAndModelEvents(t *testing.T) {
 	}
 
 	assertMessages(t, chatModel.LastInput(), []messageWant{
-		{role: schema.System, content: DefaultSystemPrompt},
+		{role: schema.System, content: prompting.DefaultSystemPrompt},
 		{role: schema.User, content: "Chapter 7에서는 무엇을 다뤘나요?"},
 		{role: schema.Assistant, content: "Streaming을 다뤘습니다."},
 		{role: schema.User, content: "Chapter 8은 무엇을 추가하나요?"},
@@ -68,9 +69,9 @@ func TestRunObservableChatChainCapturesPromptAndModelEvents(t *testing.T) {
 func TestRunObservableChatChainRejectsBlankQuestionBeforeCallingModel(t *testing.T) {
 	chatModel := fake.NewChatModel("unused")
 
-	_, err := RunObservableChatChain(context.Background(), chatModel, DefaultChatTemplate(), " \t\n ", nil)
-	if !errors.Is(err, ErrBlankQuestion) {
-		t.Fatalf("RunObservableChatChain error = %v, want %v", err, ErrBlankQuestion)
+	_, err := RunObservableChatChain(context.Background(), chatModel, prompting.DefaultChatTemplate(), " \t\n ", nil)
+	if !errors.Is(err, prompting.ErrBlankQuestion) {
+		t.Fatalf("RunObservableChatChain error = %v, want %v", err, prompting.ErrBlankQuestion)
 	}
 
 	if got := chatModel.LastInput(); len(got) != 0 {
@@ -83,7 +84,7 @@ func TestRunObservableChatChainReturnsEventsWhenModelFails(t *testing.T) {
 	modelErr := errors.New("model failed")
 	chatModel := &failingObservableModel{err: modelErr}
 
-	got, err := RunObservableChatChain(ctx, chatModel, DefaultChatTemplate(), "에러가 나면 callback은 무엇을 기록하나요?", nil)
+	got, err := RunObservableChatChain(ctx, chatModel, prompting.DefaultChatTemplate(), "에러가 나면 callback은 무엇을 기록하나요?", nil)
 	if !errors.Is(err, modelErr) {
 		t.Fatalf("RunObservableChatChain error = %v, want %v", err, modelErr)
 	}

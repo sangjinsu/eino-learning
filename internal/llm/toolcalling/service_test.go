@@ -1,4 +1,4 @@
-package llm
+package toolcalling
 
 import (
 	"context"
@@ -9,21 +9,22 @@ import (
 	"github.com/cloudwego/eino/components/model"
 	einotool "github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/schema"
+	"github.com/sangjinsu/eino-learning/internal/llm/prompting"
 	"github.com/sangjinsu/eino-learning/internal/tools"
 )
 
-func TestAskWithToolsLetsModelRequestToolAndReturnsFinalAnswer(t *testing.T) {
+func TestAskLetsModelRequestToolAndReturnsFinalAnswer(t *testing.T) {
 	ctx := context.Background()
 	calculatorTool, err := tools.NewCalculatorTool()
 	if err != nil {
 		t.Fatalf("NewCalculatorTool returned error: %v", err)
 	}
 	state := &scriptedToolCallingState{requestTool: true}
-	service := NewChatService(&scriptedToolCallingModel{state: state})
+	service := NewService(&scriptedToolCallingModel{state: state})
 
-	result, err := service.AskWithTools(ctx, "Calculate 2 + 3 * 4.", []einotool.BaseTool{calculatorTool})
+	result, err := service.Ask(ctx, "Calculate 2 + 3 * 4.", []einotool.BaseTool{calculatorTool})
 	if err != nil {
-		t.Fatalf("AskWithTools returned error: %v", err)
+		t.Fatalf("Ask returned error: %v", err)
 	}
 
 	if result.Answer() != "2 + 3 * 4 = 14." {
@@ -65,18 +66,18 @@ func TestAskWithToolsLetsModelRequestToolAndReturnsFinalAnswer(t *testing.T) {
 	}
 }
 
-func TestAskWithToolsReturnsDirectAnswerWhenModelDoesNotRequestTool(t *testing.T) {
+func TestAskReturnsDirectAnswerWhenModelDoesNotRequestTool(t *testing.T) {
 	ctx := context.Background()
 	calculatorTool, err := tools.NewCalculatorTool()
 	if err != nil {
 		t.Fatalf("NewCalculatorTool returned error: %v", err)
 	}
 	state := &scriptedToolCallingState{requestTool: false}
-	service := NewChatService(&scriptedToolCallingModel{state: state})
+	service := NewService(&scriptedToolCallingModel{state: state})
 
-	result, err := service.AskWithTools(ctx, "Say hello without tools.", []einotool.BaseTool{calculatorTool})
+	result, err := service.Ask(ctx, "Say hello without tools.", []einotool.BaseTool{calculatorTool})
 	if err != nil {
-		t.Fatalf("AskWithTools returned error: %v", err)
+		t.Fatalf("Ask returned error: %v", err)
 	}
 
 	if result.Answer() != "No tool is needed." {
@@ -90,18 +91,18 @@ func TestAskWithToolsReturnsDirectAnswerWhenModelDoesNotRequestTool(t *testing.T
 	}
 }
 
-func TestAskWithToolsRejectsBlankQuestionBeforeBindingTools(t *testing.T) {
+func TestAskRejectsBlankQuestionBeforeBindingTools(t *testing.T) {
 	ctx := context.Background()
 	calculatorTool, err := tools.NewCalculatorTool()
 	if err != nil {
 		t.Fatalf("NewCalculatorTool returned error: %v", err)
 	}
 	state := &scriptedToolCallingState{requestTool: true}
-	service := NewChatService(&scriptedToolCallingModel{state: state})
+	service := NewService(&scriptedToolCallingModel{state: state})
 
-	_, err = service.AskWithTools(ctx, " ", []einotool.BaseTool{calculatorTool})
-	if !errors.Is(err, ErrBlankQuestion) {
-		t.Fatalf("AskWithTools error = %v, want %v", err, ErrBlankQuestion)
+	_, err = service.Ask(ctx, " ", []einotool.BaseTool{calculatorTool})
+	if !errors.Is(err, prompting.ErrBlankQuestion) {
+		t.Fatalf("Ask error = %v, want %v", err, prompting.ErrBlankQuestion)
 	}
 	if state.withToolsCalls != 0 {
 		t.Fatalf("WithTools call count = %d, want 0", state.withToolsCalls)

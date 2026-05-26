@@ -1,27 +1,44 @@
-package llm
+package toolcalling
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/cloudwego/eino/components/model"
+	"github.com/cloudwego/eino/components/prompt"
 	einotool "github.com/cloudwego/eino/components/tool"
 	"github.com/cloudwego/eino/schema"
+	"github.com/sangjinsu/eino-learning/internal/llm/prompting"
 	toolrunner "github.com/sangjinsu/eino-learning/internal/tools"
 )
 
 var ErrToolCallingModelRequired = errors.New("chat service: model must support tool calling")
 
-type ToolCallingResult struct {
+type Service struct {
+	model    model.BaseChatModel
+	template prompt.ChatTemplate
+}
+
+type Result struct {
 	PromptMessages []*schema.Message
 	FirstResponse  *schema.Message
 	ToolMessages   []*schema.Message
 	FinalResponse  *schema.Message
 }
 
-func (r *ToolCallingResult) Answer() string {
+func NewService(chatModel model.BaseChatModel) *Service {
+	return NewServiceWithTemplate(chatModel, prompting.DefaultChatTemplate())
+}
+
+func NewServiceWithTemplate(chatModel model.BaseChatModel, template prompt.ChatTemplate) *Service {
+	return &Service{
+		model:    chatModel,
+		template: template,
+	}
+}
+
+func (r *Result) Answer() string {
 	if r == nil || r.FinalResponse == nil {
 		return ""
 	}
@@ -29,13 +46,13 @@ func (r *ToolCallingResult) Answer() string {
 	return r.FinalResponse.Content
 }
 
-func (s *ChatService) AskWithTools(ctx context.Context, question string, allowedTools []einotool.BaseTool) (*ToolCallingResult, error) {
+func (s *Service) Ask(ctx context.Context, question string, allowedTools []einotool.BaseTool) (*Result, error) {
 	return s.AskWithHistoryAndTools(ctx, question, nil, allowedTools)
 }
 
-func (s *ChatService) AskWithHistoryAndTools(ctx context.Context, question string, history []*schema.Message, allowedTools []einotool.BaseTool) (*ToolCallingResult, error) {
-	if strings.TrimSpace(question) == "" {
-		return nil, ErrBlankQuestion
+func (s *Service) AskWithHistoryAndTools(ctx context.Context, question string, history []*schema.Message, allowedTools []einotool.BaseTool) (*Result, error) {
+	if prompting.IsBlankQuestion(question) {
+		return nil, prompting.ErrBlankQuestion
 	}
 	if s.model == nil {
 		return nil, errors.New("chat service: model is required")
@@ -49,7 +66,7 @@ func (s *ChatService) AskWithHistoryAndTools(ctx context.Context, question strin
 		return nil, ErrToolCallingModelRequired
 	}
 
-	messages, err := s.formatMessages(ctx, question, history)
+	messages, err := prompting.FormatMessages(ctx, s.template, question, history)
 	if err != nil {
 		return nil, err
 	}
@@ -71,8 +88,8 @@ func (s *ChatService) AskWithHistoryAndTools(ctx context.Context, question strin
 		return nil, errors.New("generate tool call: empty response")
 	}
 	if len(firstResponse.ToolCalls) == 0 {
-		return &ToolCallingResult{
-			PromptMessages: cloneMessages(messages),
+		return &Result{
+			PromptMessages: prompting.CloneMessages(messages),
 			FirstResponse:  firstResponse,
 			FinalResponse:  firstResponse,
 		}, nil
@@ -83,7 +100,7 @@ func (s *ChatService) AskWithHistoryAndTools(ctx context.Context, question strin
 		return nil, fmt.Errorf("execute tool calls: %w", err)
 	}
 
-	followupMessages := append(cloneMessages(messages), firstResponse)
+	followupMessages := append(prompting.CloneMessages(messages), firstResponse)
 	followupMessages = append(followupMessages, toolMessages...)
 
 	finalResponse, err := modelWithTools.Generate(ctx, followupMessages)
@@ -94,26 +111,12 @@ func (s *ChatService) AskWithHistoryAndTools(ctx context.Context, question strin
 		return nil, errors.New("generate final answer: empty response")
 	}
 
-	return &ToolCallingResult{
-		PromptMessages: cloneMessages(messages),
+	return &Result{
+		PromptMessages: prompting.CloneMessages(messages),
 		FirstResponse:  firstResponse,
-		ToolMessages:   cloneMessages(toolMessages),
+		ToolMessages:   prompting.CloneMessages(toolMessages),
 		FinalResponse:  finalResponse,
 	}, nil
-}
-
-func (s *ChatService) formatMessages(ctx context.Context, question string, history []*schema.Message) ([]*schema.Message, error) {
-	vars := map[string]any{"question": question}
-	if len(history) > 0 {
-		vars["history"] = history
-	}
-
-	messages, err := s.template.Format(ctx, vars)
-	if err != nil {
-		return nil, fmt.Errorf("format prompt: %w", err)
-	}
-
-	return messages, nil
 }
 
 func collectToolInfos(ctx context.Context, allowedTools []einotool.BaseTool) ([]*schema.ToolInfo, error) {
@@ -131,8 +134,4 @@ func collectToolInfos(ctx context.Context, allowedTools []einotool.BaseTool) ([]
 	}
 
 	return toolInfos, nil
-}
-
-func cloneMessages(messages []*schema.Message) []*schema.Message {
-	return append([]*schema.Message(nil), messages...)
 }

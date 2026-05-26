@@ -8,7 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sangjinsu/eino-learning/internal/llm"
+	"github.com/sangjinsu/eino-learning/internal/llm/chat"
+	llmopenai "github.com/sangjinsu/eino-learning/internal/llm/openai"
 )
 
 func main() {
@@ -17,7 +18,7 @@ func main() {
 		question = strings.Join(os.Args[1:], " ")
 	}
 
-	if !llm.OpenAIIntegrationEnabled() {
+	if !llmopenai.IntegrationEnabled() {
 		fmt.Println("OpenAI integration is disabled.")
 		fmt.Println("Set RUN_EINO_INTEGRATION=1 and OPENAI_API_KEY to run this example.")
 		return
@@ -26,12 +27,12 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second)
 	defer cancel()
 
-	chatModel, err := llm.NewOpenAIChatModel(ctx, llm.LoadOpenAIConfigFromEnv())
+	chatModel, err := llmopenai.NewChatModel(ctx, llmopenai.LoadConfigFromEnv())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	service := llm.NewChatService(chatModel)
+	service := chat.NewService(chatModel)
 	answer, err := service.Ask(ctx, question)
 	if err != nil {
 		log.Fatal(err)

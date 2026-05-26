@@ -1,4 +1,4 @@
-package llm
+package chat
 
 import (
 	"context"
@@ -6,12 +6,13 @@ import (
 
 	"github.com/cloudwego/eino/schema"
 	"github.com/sangjinsu/eino-learning/internal/fake"
+	"github.com/sangjinsu/eino-learning/internal/llm/prompting"
 )
 
 func TestChatServiceAskSendsUserMessageAndReturnsModelContent(t *testing.T) {
 	ctx := context.Background()
 	chatModel := fake.NewChatModel("Eino helps build LLM applications in Go.")
-	service := NewChatService(chatModel)
+	service := NewService(chatModel)
 
 	got, err := service.Ask(ctx, "What does Eino do?")
 	if err != nil {
@@ -29,8 +30,8 @@ func TestChatServiceAskSendsUserMessageAndReturnsModelContent(t *testing.T) {
 	if lastInput[0].Role != schema.System {
 		t.Fatalf("first message role = %q, want %q", lastInput[0].Role, schema.System)
 	}
-	if lastInput[0].Content != DefaultSystemPrompt {
-		t.Fatalf("first message content = %q, want %q", lastInput[0].Content, DefaultSystemPrompt)
+	if lastInput[0].Content != prompting.DefaultSystemPrompt {
+		t.Fatalf("first message content = %q, want %q", lastInput[0].Content, prompting.DefaultSystemPrompt)
 	}
 	if lastInput[1].Role != schema.User {
 		t.Fatalf("second message role = %q, want %q", lastInput[1].Role, schema.User)
@@ -47,7 +48,7 @@ func TestDefaultChatTemplateFormatsSystemHistoryAndQuestion(t *testing.T) {
 		schema.AssistantMessage("Eino is a Go framework for LLM apps.", nil),
 	}
 
-	got, err := DefaultChatTemplate().Format(ctx, map[string]any{
+	got, err := prompting.DefaultChatTemplate().Format(ctx, map[string]any{
 		"history":  history,
 		"question": "How does ChatTemplate help?",
 	})
@@ -56,7 +57,7 @@ func TestDefaultChatTemplateFormatsSystemHistoryAndQuestion(t *testing.T) {
 	}
 
 	assertMessages(t, got, []messageWant{
-		{role: schema.System, content: DefaultSystemPrompt},
+		{role: schema.System, content: prompting.DefaultSystemPrompt},
 		{role: schema.User, content: "What is Eino?"},
 		{role: schema.Assistant, content: "Eino is a Go framework for LLM apps."},
 		{role: schema.User, content: "How does ChatTemplate help?"},
@@ -64,7 +65,7 @@ func TestDefaultChatTemplateFormatsSystemHistoryAndQuestion(t *testing.T) {
 }
 
 func TestDefaultChatTemplateFormatsWithoutHistory(t *testing.T) {
-	got, err := DefaultChatTemplate().Format(context.Background(), map[string]any{
+	got, err := prompting.DefaultChatTemplate().Format(context.Background(), map[string]any{
 		"question": "How does ChatTemplate help?",
 	})
 	if err != nil {
@@ -72,7 +73,7 @@ func TestDefaultChatTemplateFormatsWithoutHistory(t *testing.T) {
 	}
 
 	assertMessages(t, got, []messageWant{
-		{role: schema.System, content: DefaultSystemPrompt},
+		{role: schema.System, content: prompting.DefaultSystemPrompt},
 		{role: schema.User, content: "How does ChatTemplate help?"},
 	})
 }
@@ -80,7 +81,7 @@ func TestDefaultChatTemplateFormatsWithoutHistory(t *testing.T) {
 func TestChatServiceAskWithHistoryFormatsMessagesAndReturnsModelContent(t *testing.T) {
 	ctx := context.Background()
 	chatModel := fake.NewChatModel("Templates turn variables into chat messages.")
-	service := NewChatService(chatModel)
+	service := NewService(chatModel)
 	history := []*schema.Message{
 		schema.UserMessage("What did chapter 1 cover?"),
 		schema.AssistantMessage("It covered fake ChatModel basics.", nil),
@@ -96,7 +97,7 @@ func TestChatServiceAskWithHistoryFormatsMessagesAndReturnsModelContent(t *testi
 	}
 
 	assertMessages(t, chatModel.LastInput(), []messageWant{
-		{role: schema.System, content: DefaultSystemPrompt},
+		{role: schema.System, content: prompting.DefaultSystemPrompt},
 		{role: schema.User, content: "What did chapter 1 cover?"},
 		{role: schema.Assistant, content: "It covered fake ChatModel basics."},
 		{role: schema.User, content: "What does chapter 2 add?"},
@@ -105,7 +106,7 @@ func TestChatServiceAskWithHistoryFormatsMessagesAndReturnsModelContent(t *testi
 
 func TestChatServiceAskRejectsBlankQuestionBeforeCallingModel(t *testing.T) {
 	chatModel := fake.NewChatModel("unused")
-	service := NewChatService(chatModel)
+	service := NewService(chatModel)
 
 	_, err := service.Ask(context.Background(), " \t\n ")
 	if err == nil {
@@ -119,7 +120,7 @@ func TestChatServiceAskRejectsBlankQuestionBeforeCallingModel(t *testing.T) {
 
 func TestChatServiceAskWithHistoryRejectsBlankQuestionBeforeCallingModel(t *testing.T) {
 	chatModel := fake.NewChatModel("unused")
-	service := NewChatService(chatModel)
+	service := NewService(chatModel)
 
 	_, err := service.AskWithHistory(context.Background(), " \t\n ", []*schema.Message{
 		schema.UserMessage("history should not be used"),
