@@ -14,7 +14,7 @@
 6. Graph
 7. Streaming
 8. Callback과 Observability
-9. RAG
+9. RAG 기초 (Markdown/Text 기반 in-memory keyword RAG)
 10. ReAct Agent
 11. GraphTool
 12. Human-in-the-loop

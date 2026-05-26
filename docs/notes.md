@@ -133,3 +133,23 @@ sequenceDiagram
 - 실선 흐름은 `질문 -> ChatTemplate -> ChatModel -> 답변`입니다.
 - callback은 점선처럼 옆에서 lifecycle event만 받는 관찰자입니다.
 - `TestRunObservableChatChainCapturesPromptAndModelEvents`는 이 event timeline을 검증해 callback이 답변 생성 흐름을 바꾸지 않는다는 점을 보여줍니다.
+
+## Chapter 09
+
+- RAG는 model이 바로 답하지 않고 먼저 관련 문서를 검색한 뒤, 검색 context를 prompt에 넣어 답변하는 구조입니다.
+- 이번 장은 `testdata/docs/ch09-rag`의 Markdown/Text 문서만 사용합니다.
+- CLI는 문서의 첫 non-empty line을 title로, 파일 경로를 source metadata로 저장합니다.
+- 출력은 retrieved sources, prompt context summary, final answer 순서로 구성해 답변이 어떤 문서에 근거했는지 먼저 확인하게 합니다.
+- v1은 in-memory keyword retriever만 사용합니다. PDF parser, embedding provider, vector store는 의도적으로 제외합니다.
+- `OPENAI_API_KEY`가 없으면 기존 model-backed CLI처럼 설정 안내 후 종료합니다.
+- Unit test는 외부 API 없이 CLI formatting과 RAG service를 검증하고, 실제 OpenAI 호출은 `RUN_EINO_INTEGRATION=1`일 때만 실행합니다.
+
+```mermaid
+flowchart LR
+    question["질문"] --> retriever["Retriever"]
+    retriever --> docs["관련 문서"]
+    docs --> prompt["context prompt"]
+    question --> prompt
+    prompt --> model["ChatModel"]
+    model --> answer["answer + sources"]
+```
