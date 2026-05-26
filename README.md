@@ -413,6 +413,21 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm/observability -run TestOpenAIObser
 - 문서 title/source metadata는 최종 출력의 retrieved sources와 prompt context summary에 사용합니다.
 - v1에서는 PDF parser, embedding provider, vector store를 사용하지 않습니다. 이런 기능은 후속 chapter 또는 확장 과제로 남깁니다.
 
+RAG 흐름 그래프:
+
+```mermaid
+flowchart TD
+    question["사용자 질문"] --> retriever["InMemoryRetriever<br/>keyword overlap 검색"]
+    corpus["Markdown/Text 예시 문서<br/>schema.Document"] --> retriever
+    retriever --> docs["관련 문서 + score + source metadata"]
+    docs --> context["context 문자열 생성"]
+    question --> template["RAG ChatTemplate"]
+    context --> template
+    template --> messages["prompt messages"]
+    messages --> model["ChatModel<br/>OpenAI / fake model"]
+    model --> result["answer + retrieved sources"]
+```
+
 실행 명령:
 
 ```bash

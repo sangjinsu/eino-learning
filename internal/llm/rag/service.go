@@ -106,6 +106,7 @@ func (s *Service) AskWithHistory(ctx context.Context, question string, history [
 		return nil, ErrTemplateRequired
 	}
 
+	// RAG의 첫 단계입니다. 질문을 바로 모델에 보내지 않고 먼저 관련 문서를 찾습니다.
 	docs, err := s.retriever.Retrieve(ctx, strings.TrimSpace(question), retriever.WithTopK(s.topK))
 	if err != nil {
 		return nil, fmt.Errorf("retrieve RAG context: %w", err)
@@ -114,6 +115,7 @@ func (s *Service) AskWithHistory(ctx context.Context, question string, history [
 		return nil, ErrNoRelevantDocuments
 	}
 
+	// 검색된 문서를 하나의 context 문자열로 만들어 ChatTemplate 입력 변수에 넣습니다.
 	vars := map[string]any{
 		"question": strings.TrimSpace(question),
 		"context":  formatContext(docs),
@@ -127,6 +129,7 @@ func (s *Service) AskWithHistory(ctx context.Context, question string, history [
 		return nil, fmt.Errorf("format RAG prompt: %w", err)
 	}
 
+	// ChatModel은 원본 질문이 아니라 검색 context가 포함된 prompt message를 받습니다.
 	message, err := s.model.Generate(ctx, messages)
 	if err != nil {
 		return &Result{
@@ -171,6 +174,7 @@ func (r *InMemoryRetriever) Retrieve(ctx context.Context, query string, opts ...
 		return nil, nil
 	}
 
+	// 학습용 retriever이므로 embedding 대신 token overlap 점수로 관련 문서를 고릅니다.
 	queryWeights := tokenWeights(query)
 	if len(queryWeights) == 0 {
 		return nil, nil
