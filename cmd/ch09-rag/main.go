@@ -36,6 +36,7 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()
 
+	// CLI에서는 Markdown/Text 예시 문서를 schema.Document corpus로 바꿔 RAG 입력을 준비합니다.
 	docs, err := loadDocuments(defaultDocsDir)
 	if err != nil {
 		log.Fatal(err)
@@ -56,6 +57,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	// 출력 순서는 retrieval 근거를 먼저 보여주고 마지막에 모델 답변을 보여주도록 고정합니다.
 	fmt.Println("rag:")
 	fmt.Println("question -> Retriever -> context prompt -> ChatModel -> answer + sources")
 	fmt.Println()

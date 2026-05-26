@@ -145,11 +145,16 @@ sequenceDiagram
 - Unit test는 외부 API 없이 CLI formatting과 RAG service를 검증하고, 실제 OpenAI 호출은 `RUN_EINO_INTEGRATION=1`일 때만 실행합니다.
 
 ```mermaid
-flowchart LR
-    question["질문"] --> retriever["Retriever"]
-    retriever --> docs["관련 문서"]
-    docs --> prompt["context prompt"]
-    question --> prompt
-    prompt --> model["ChatModel"]
+flowchart TD
+    question["질문"] --> retriever["Retriever<br/>keyword overlap"]
+    corpus["Markdown/Text corpus"] --> retriever
+    retriever --> docs["관련 문서<br/>score + source"]
+    docs --> context["context block"]
+    question --> template["RAG ChatTemplate"]
+    context --> template
+    template --> messages["prompt messages"]
+    messages --> model["ChatModel"]
     model --> answer["answer + sources"]
 ```
+
+이 그래프에서 `Retriever`는 답변을 생성하지 않습니다. 검색된 문서를 `context block`으로 바꾸고, `ChatTemplate`이 질문과 context를 함께 model 입력으로 만드는 것이 Chapter 09의 핵심입니다.
