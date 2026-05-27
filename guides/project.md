@@ -38,6 +38,7 @@ internal/
     graph/
     streaming/
     observability/
+  mcpdemo/
   tools/
   rag/
   agent/

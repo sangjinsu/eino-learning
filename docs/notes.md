@@ -220,3 +220,22 @@ flowchart TD
 ```
 
 이 그래프에서 `Retriever`는 답변을 생성하지 않습니다. 검색된 문서를 `context block`으로 바꾸고, `ChatTemplate`이 질문과 context를 함께 model 입력으로 만드는 것이 Chapter 09의 핵심입니다.
+
+## Chapter 10
+
+- MCP는 LLM host/client가 server의 tools, resources, prompts를 표준 protocol로 발견하고 호출하게 해 줍니다.
+- 이번 장의 server는 local stdio transport를 사용하므로 일반 CLI 출력 프로그램이 아니라 MCP client가 stdin/stdout으로 연결하는 process입니다.
+- `mcp.AddTool`은 typed Go handler를 받아 input schema와 structured output을 자동으로 구성합니다.
+- 기존 `tools.Calculate`를 재사용하지만, MCP SDK의 JSON schema 추론과 충돌하지 않도록 MCP 전용 input type을 얇게 둡니다.
+- `server.AddResource`는 `eino-learning://chapters/mcp` URI의 읽기 전용 학습 context를 제공합니다.
+- `cmd/ch10-mcp-client`는 `mcp.CommandTransport`로 `cmd/ch10-mcp-server`를 subprocess로 실행해 tool call과 resource read를 눈으로 확인하는 예시입니다.
+- Unit test는 `mcp.NewInMemoryTransports`로 실제 stdio 없이 MCP client/server session을 검증합니다.
+
+```mermaid
+flowchart LR
+    mcpClient["MCP Client"] --> mcpServer["MCP Server"]
+    mcpServer --> calculatorTool["Calculator tool"]
+    mcpServer --> chapterResource["Chapter resource"]
+    calculatorTool --> calculatorLogic["tools Calculate"]
+    chapterResource --> summaryText["MCP summary text"]
+```
