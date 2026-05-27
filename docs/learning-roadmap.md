@@ -6,23 +6,25 @@
 
 ## 순서
 
-1. ChatModel fake와 기본 service
-2. Prompt Template과 Message 설계
-3. OpenAI ChatModel integration
-4. Tool Calling
-5. Chain
-6. Graph
-7. Streaming
-8. Callback과 Observability
-9. RAG 기초 (Markdown/Text 기반 in-memory keyword RAG)
-10. MCP 기초 (local stdio server, demo client, calculator tool, read-only resource)
-11. ReAct Agent
-12. GraphTool
-13. Human-in-the-loop
-14. Mini DevOps Assistant
+| Chapter | 주제 | 상태 |
+| --- | --- | --- |
+| 01 | ChatModel fake와 기본 service | 완료 |
+| 02 | Prompt Template과 Message 설계 | 완료 |
+| 03 | OpenAI ChatModel integration | 완료 |
+| 04 | Tool Calling | 완료 |
+| 05 | Chain | 완료 |
+| 06 | Graph | 완료 |
+| 07 | Streaming | 완료 |
+| 08 | Callback과 Observability | 완료 |
+| 09 | RAG 기초 | 완료 |
+| 10 | MCP 기초 | 완료 |
+| 11 | ReAct Agent | 예정 |
+| 12 | GraphTool | 예정 |
+| 13 | Human-in-the-loop | 예정 |
+| 14 | Mini DevOps Assistant | 예정 |
 
 ## 원칙
 
 - 외부 API 없이 unit test가 통과해야 합니다.
 - 실제 provider 연동은 opt-in integration test로 분리합니다.
-- 각 장은 README 또는 docs에 실행 방법을 남깁니다.
+- 각 장의 대표 실행 방법은 `docs/progress.md`에 남깁니다.

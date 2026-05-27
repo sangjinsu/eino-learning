@@ -27,26 +27,33 @@
 ```text
 cmd/
   ch01-chatmodel/
+  ch02-prompt-template/
+  ...
+  ch10-mcp-client/
+  ch10-mcp-server/
 internal/
   fake/
   llm/
-    prompting/
     chat/
-    openai/
-    toolcalling/
     chain/
     graph/
-    streaming/
     observability/
+    openai/
+    prompting/
+    rag/
+    streaming/
+    toolcalling/
   mcpdemo/
   tools/
-  rag/
-  agent/
 docs/
   learning-roadmap.md
   progress.md
   notes.md
+guides/
+  chapters.md
+  project.md
+  security.md
+  workflow.md
 testdata/
   docs/
-  golden/
 ```

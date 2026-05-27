@@ -2,6 +2,8 @@
 
 학습은 작은 chapter 단위로 진행합니다. 각 chapter는 외부 API 없이 통과하는 unit test를 우선합니다.
 
+이 문서는 목표와 완료 기준만 정의합니다. 대표 실행 명령은 [../docs/progress.md](../docs/progress.md), 개념 설명과 그래프는 [../docs/notes.md](../docs/notes.md)에 둡니다.
+
 ## Chapter 01. Eino 개요와 ChatModel
 
 목표:
@@ -150,7 +152,7 @@
 - `cmd/ch09-rag` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel 기반 RAG를 실행합니다.
 - CLI 기본 질문은 한국어 예시로 구성합니다.
 - 예시 문서는 `testdata/docs/ch09-rag`의 Markdown/Text 파일만 사용합니다.
-- README와 notes에 `question -> Retriever -> context -> ChatTemplate -> ChatModel -> answer + sources` 흐름 그래프가 있습니다.
+- `docs/notes.md`에 `question -> Retriever -> context -> ChatTemplate -> ChatModel -> answer + sources` 흐름 그래프가 있습니다.
 - PDF parser, embedding provider, vector store는 v1 범위에서 제외합니다.
 - Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
 - `go test ./...`가 통과합니다.

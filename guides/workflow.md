@@ -10,7 +10,7 @@
 4. 테스트를 먼저 작성하거나 테스트 가능한 구조를 먼저 설계합니다.
 5. fake/mock 기반 구현으로 unit test를 통과시킵니다.
 6. `gofmt -w .`, `go test ./...`, 가능하면 `go vet ./...`를 실행합니다.
-7. README 또는 docs에 실행 방법과 배운 점을 짧게 남깁니다.
+7. `docs/progress.md`에 실행 방법을, `docs/notes.md`에 배운 점을 짧게 남깁니다.
 
 ## 테스트 원칙
 
