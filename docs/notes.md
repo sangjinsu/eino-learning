@@ -1,5 +1,7 @@
 # Notes
 
+이 문서는 chapter별 개념 설명과 흐름 그래프를 모아둔 학습 노트입니다. 실행 명령과 완료 상태는 [progress.md](progress.md)를, 목표와 완료 기준은 [../guides/chapters.md](../guides/chapters.md)를 봅니다.
+
 ## Chapter 01
 
 - fake ChatModel은 외부 API 없이 Eino의 `ChatModel` 형태를 이해하기 위한 학습용 구현입니다.
