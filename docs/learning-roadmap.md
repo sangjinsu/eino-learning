@@ -15,10 +15,11 @@
 7. Streaming
 8. Callback과 Observability
 9. RAG 기초 (Markdown/Text 기반 in-memory keyword RAG)
-10. ReAct Agent
-11. GraphTool
-12. Human-in-the-loop
-13. Mini DevOps Assistant
+10. MCP 기초 (local stdio server, demo client, calculator tool, read-only resource)
+11. ReAct Agent
+12. GraphTool
+13. Human-in-the-loop
+14. Mini DevOps Assistant
 
 ## 원칙
 

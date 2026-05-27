@@ -617,4 +617,79 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm/rag -run TestOpenAIRAGIntegration 
 
 다음 장에서 할 일:
 
-- Chapter 10에서 ReAct Agent를 다룹니다.
+- Chapter 10에서 MCP 기초를 다룹니다.
+
+## Chapter 10. MCP 기초
+
+이번 장의 목표:
+
+- Model Context Protocol(MCP)이 tools, resources, prompts를 표준 protocol로 노출하는 방식을 이해합니다.
+- local stdio MCP server를 만들고 safe calculator tool을 등록합니다.
+- 읽기 전용 resource를 등록해 client가 학습 context를 발견하고 읽는 흐름을 확인합니다.
+
+핵심 개념:
+
+- MCP server는 host/client에게 tool 목록과 resource 목록을 protocol로 제공합니다.
+- `mcp.AddTool`은 Go struct input/output으로 JSON schema와 structured output을 구성합니다.
+- `server.AddResource`는 URI로 식별되는 읽기 전용 context를 제공합니다.
+- 이번 장은 local stdio server와 이를 호출하는 작은 demo client만 다루며 HTTP transport, OAuth, 배포용 MCP host 연동은 후속 확장 과제로 둡니다.
+
+MCP 흐름 그래프:
+
+```mermaid
+flowchart LR
+    mcpClient["MCP Client or Host"] --> discovery["Discover tools and resources"]
+    discovery --> mcpServer["Chapter 10 MCP Server"]
+    mcpClient --> toolCall["Call calculator tool"]
+    toolCall --> calculatorTool["internal tools Calculate"]
+    mcpClient --> resourceRead["Read chapter resource"]
+    resourceRead --> chapterResource["MCP chapter resource"]
+    calculatorTool --> toolResult["Structured output"]
+    chapterResource --> resourceContext["Learning context"]
+```
+
+실행 명령:
+
+이 명령은 stdio MCP transport를 열고 client 연결을 기다립니다. 일반 터미널에서 단독 실행하면 대화형 출력 예제가 아니라 MCP host/client가 stdin/stdout으로 연결할 server process로 동작합니다.
+
+```bash
+go run ./cmd/ch10-mcp-server
+```
+
+동작 확인 예시:
+
+아래 명령은 demo client가 server process를 직접 띄운 뒤 `calculator` tool을 호출하고 chapter resource를 읽습니다.
+
+```bash
+go run ./cmd/ch10-mcp-client
+```
+
+예상 출력:
+
+```text
+mcp demo:
+server command: go run ./cmd/ch10-mcp-server
+tool call: calculator expression="2 + 3 * 4"
+tool result: expression="2 + 3 * 4" result=14
+resource read: eino-learning://chapters/mcp
+resource text:
+MCP basics for eino-learning:
+...
+```
+
+출력에서 확인할 것:
+
+- MCP client가 `calculator` tool을 발견하고 `expression` argument로 호출할 수 있습니다.
+- `eino-learning://chapters/mcp` resource를 읽으면 tools/resources/prompts 요약 text를 받을 수 있습니다.
+- calculator는 Chapter 04와 같은 safe arithmetic 구현을 재사용합니다.
+
+테스트 명령:
+
+```bash
+go test ./internal/mcpdemo ./cmd/ch10-mcp-server ./cmd/ch10-mcp-client -count=1
+RUN_EINO_INTEGRATION=0 OPENAI_API_KEY= go test ./...
+```
+
+다음 장에서 할 일:
+
+- Chapter 11에서 ReAct Agent를 다룹니다.

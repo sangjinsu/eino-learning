@@ -258,6 +258,34 @@ go test ./cmd/ch09-rag ./internal/llm/rag -count=1
 - OpenAI RAG integration test 추가
 - 기본 `go test ./...`는 외부 API 없이 통과
 
+## Chapter 10. MCP 기초
+
+상태: 완료
+
+대표 실행 예시:
+
+```bash
+go run ./cmd/ch10-mcp-client
+```
+
+검증 포인트:
+
+- stdio MCP server가 client 연결을 기다리는 process로 실행됩니다.
+- demo client가 server process를 띄우고 `calculator` tool을 호출해 `14`를 출력합니다.
+- demo client가 `eino-learning://chapters/mcp` resource를 읽어 학습 context를 출력합니다.
+- in-memory transport test에서 `calculator` tool call과 chapter resource read가 검증됩니다.
+
+완료 기준:
+
+- MCP Go SDK 의존성 추가
+- `internal/mcpdemo.NewServer` 구현
+- `calculator` MCP tool 등록
+- `eino-learning://chapters/mcp` resource 등록
+- `cmd/ch10-mcp-server` stdio server 예제 추가
+- `cmd/ch10-mcp-client` 실행 확인 예제 추가
+- MCP tool/resource unit test 추가
+- 기본 `go test ./...`는 외부 API 없이 통과
+
 ## 다음 작업
 
-- Chapter 10에서 ReAct Agent를 다룹니다.
+- Chapter 11에서 ReAct Agent를 다룹니다.

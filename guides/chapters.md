@@ -155,9 +155,28 @@
 - Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
 - `go test ./...`가 통과합니다.
 
-## Chapter 09 이후 로드맵
+## Chapter 10. MCP 기초
 
-- Chapter 10: ReAct Agent
-- Chapter 11: GraphTool
-- Chapter 12: Human-in-the-loop
-- Chapter 13: Mini Project, DevOps Assistant
+목표:
+
+- MCP server가 tools와 resources를 표준 protocol로 노출하는 흐름을 이해합니다.
+- local stdio transport로 실행되는 학습용 MCP server를 만듭니다.
+- 기존 safe calculator를 MCP tool로 재사용합니다.
+- 읽기 전용 chapter resource를 제공해 context 노출 방식을 확인합니다.
+
+완료 기준:
+
+- `internal/mcpdemo`에 MCP server factory가 있습니다.
+- `calculator` MCP tool은 `internal/tools.Calculate`를 재사용합니다.
+- `eino-learning://chapters/mcp` resource가 MCP 개념 요약 text를 반환합니다.
+- `cmd/ch10-mcp-server` 예제가 stdio MCP server를 실행합니다.
+- `cmd/ch10-mcp-client` 예제가 server를 띄워 tool call과 resource read 결과를 출력합니다.
+- Unit test는 in-memory transport로 tool call과 resource read를 검증합니다.
+- `go test ./...`가 통과합니다.
+
+## Chapter 10 이후 로드맵
+
+- Chapter 11: ReAct Agent
+- Chapter 12: GraphTool
+- Chapter 13: Human-in-the-loop
+- Chapter 14: Mini Project, DevOps Assistant
