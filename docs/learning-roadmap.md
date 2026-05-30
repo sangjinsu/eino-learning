@@ -18,7 +18,7 @@
 | 08 | Callback과 Observability | 완료 |
 | 09 | RAG 기초 | 완료 |
 | 10 | MCP 기초 | 완료 |
-| 11 | ReAct Agent | 예정 |
+| 11 | ReAct Agent | 완료 |
 | 12 | GraphTool | 예정 |
 | 13 | Human-in-the-loop | 예정 |
 | 14 | Mini DevOps Assistant | 예정 |
