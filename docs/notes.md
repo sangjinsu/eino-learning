@@ -241,3 +241,28 @@ flowchart LR
     calculatorTool --> calculatorLogic["tools Calculate"]
     chapterResource --> summaryText["MCP summary text"]
 ```
+
+## Chapter 11
+
+- ReAct Agent는 model이 tool call을 요청하면 tool을 실행하고, 그 tool result를 다시 model 입력에 넣는 loop를 agent가 대신 관리하는 구조입니다.
+- 이번 장은 `github.com/cloudwego/eino/flow/agent/react`의 `react.NewAgent`를 사용합니다.
+- `react.AgentConfig`의 핵심 입력은 tool call이 가능한 `ToolCallingModel`, 실제 tool 구현을 담은 `ToolsConfig`, loop 상한인 `MaxStep`입니다.
+- Chapter 04에서는 first `Generate`, `ToolsNode`, second `Generate`를 service가 직접 연결했습니다. Chapter 11에서는 같은 calculator tool을 ReAct Agent에 등록해 반복 흐름을 agent 내부 graph에 맡깁니다.
+- `MaxStep`은 agent가 무한히 tool call을 반복하지 않도록 막는 안전장치입니다. 이 저장소의 기본값은 Eino ReAct Agent의 기본 의도에 맞춰 `12`로 둡니다.
+- 실행 예시는 `go run ./cmd/ch11-react-agent '12 * (3 + 4)를 계산하고 풀이를 설명해 주세요'`이며, OpenAI ChatModel 기반 ReAct Agent라 `OPENAI_API_KEY`가 필요합니다.
+- API key 없이 흐름을 확인할 때는 `go test ./cmd/ch11-react-agent ./internal/llm/agent -count=1`을 사용합니다.
+- 출력의 `available tools`와 `max step`을 먼저 확인한 뒤, final answer가 calculator tool을 사용한 결과를 반영하는지 봅니다.
+
+```mermaid
+flowchart TD
+    question["질문"] --> agent["ReAct Agent"]
+    agent --> model1["ChatModel"]
+    model1 --> toolCall["ToolCall: calculator"]
+    toolCall --> toolsNode["ToolsNode"]
+    toolsNode --> toolMessage["ToolMessage: 계산 결과"]
+    toolMessage --> model2["ChatModel"]
+    model2 --> answer["final answer"]
+    maxStep["MaxStep"] -. "loop 상한" .-> agent
+```
+
+이 그래프에서 애플리케이션 코드는 `ChatModel -> ToolsNode -> ChatModel`을 직접 반복하지 않습니다. tool schema 등록, tool 실행, 다음 model 호출을 ReAct Agent가 graph로 관리하는 것이 Chapter 11의 핵심입니다.

@@ -31,9 +31,11 @@ cmd/
   ...
   ch10-mcp-client/
   ch10-mcp-server/
+  ch11-react-agent/
 internal/
   fake/
   llm/
+    agent/
     chat/
     chain/
     graph/

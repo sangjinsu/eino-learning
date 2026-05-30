@@ -46,7 +46,8 @@ flowchart LR
     streaming --> callback["Callback"]
     callback --> rag["RAG"]
     rag --> mcp["MCP"]
-    mcp --> agent["Agent"]
+    mcp --> agent["ReAct Agent"]
+    agent --> graphtool["GraphTool"]
 ```
 
 ## Chapter Index
@@ -63,6 +64,7 @@ flowchart LR
 | 08 | Callback과 observability timeline | `cmd/ch08-callback-observability` | 필요 |
 | 09 | Markdown/Text 기반 RAG | `cmd/ch09-rag` | 필요 |
 | 10 | local stdio MCP server와 demo client | `cmd/ch10-mcp-client` | 불필요 |
+| 11 | ReAct Agent와 calculator tool loop | `cmd/ch11-react-agent` | 필요 |
 
 상세한 목표와 완료 기준은 [guides/chapters.md](guides/chapters.md)를, 대표 실행 명령과 검증 명령은 [docs/progress.md](docs/progress.md)를, 각 chapter의 개념 설명과 그래프는 [docs/notes.md](docs/notes.md)를 봅니다.
 
@@ -98,6 +100,7 @@ git diff --check
 go test ./internal/llm/chain -run 'TestService|TestNewService' -count=1
 go test ./cmd/ch09-rag ./internal/llm/rag -count=1
 go test ./internal/mcpdemo ./cmd/ch10-mcp-server ./cmd/ch10-mcp-client -count=1
+go test ./cmd/ch11-react-agent ./internal/llm/agent -count=1
 ```
 
 실제 OpenAI integration test 예시:
@@ -108,6 +111,6 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm/openai -run TestOpenAIChatModelInt
 
 ## 현재 진행 상태
 
-- Chapter 01-10은 완료되어 있습니다.
-- 다음 주제는 Chapter 11 ReAct Agent입니다.
+- Chapter 01-11은 완료되어 있습니다.
+- 다음 주제는 Chapter 12 GraphTool입니다.
 - 최신 완료 상태와 검증 포인트는 [docs/progress.md](docs/progress.md)에 유지합니다.

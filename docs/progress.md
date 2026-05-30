@@ -16,6 +16,7 @@
 | 08. Callback | 완료 | `go run ./cmd/ch08-callback-observability 'ChatTemplate과 ChatModel 실행을 callback으로 어떻게 관찰하나요?'` | 필요 | `go test ./internal/llm/observability -run 'TestRunObservableChatChain' -count=1` |
 | 09. RAG | 완료 | `go run ./cmd/ch09-rag 'RAG는 검색된 문서를 어떻게 답변 근거로 사용하나요?'` | 필요 | `go test ./cmd/ch09-rag ./internal/llm/rag -count=1` |
 | 10. MCP | 완료 | `go run ./cmd/ch10-mcp-client` | 불필요 | `go test ./internal/mcpdemo ./cmd/ch10-mcp-server ./cmd/ch10-mcp-client -count=1` |
+| 11. ReAct Agent | 완료 | `go run ./cmd/ch11-react-agent '12 * (3 + 4)를 계산하고 풀이를 설명해 주세요'` | 필요 | `go test ./cmd/ch11-react-agent ./internal/llm/agent -count=1` |
 
 ## 공통 검증
 
@@ -52,7 +53,8 @@ RUN_EINO_INTEGRATION=1 go test ./internal/llm/openai -run TestOpenAIChatModelInt
 | 08 | Chain, ChatTemplate, ChatModel callback event timeline |
 | 09 | retrieved sources, prompt context summary, final answer 순서 |
 | 10 | MCP client가 server subprocess를 띄워 tool call과 resource read 수행 |
+| 11 | registered tools, `MaxStep`, ReAct final answer |
 
 ## 다음 작업
 
-- Chapter 11에서 ReAct Agent를 다룹니다.
+- Chapter 12에서 GraphTool을 다룹니다.

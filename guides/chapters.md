@@ -176,9 +176,28 @@
 - Unit test는 in-memory transport로 tool call과 resource read를 검증합니다.
 - `go test ./...`가 통과합니다.
 
-## Chapter 10 이후 로드맵
+## Chapter 11. ReAct Agent
 
-- Chapter 11: ReAct Agent
+목표:
+
+- Eino ReAct Agent가 `ChatModel -> ToolsNode -> ChatModel` loop를 자동으로 실행하는 방식을 이해합니다.
+- `react.NewAgent`와 `react.AgentConfig`의 핵심 입력인 `ToolCallingModel`, `ToolsConfig`, `MaxStep`을 확인합니다.
+- Chapter 04의 safe calculator tool을 재사용해 manual tool-calling loop와 agent loop의 차이를 비교합니다.
+- CLI에서 등록된 tool, 최대 step, final answer를 순서대로 확인합니다.
+
+완료 기준:
+
+- `internal/llm/agent`에 ReAct Agent service가 있습니다.
+- service는 `model.ToolCallingChatModel`과 `[]tool.BaseTool`을 받아 `react.NewAgent`를 구성합니다.
+- 기본 `MaxStep`은 학습용 상수로 노출하고, option으로 조정할 수 있습니다.
+- `cmd/ch11-react-agent` 예제가 `OPENAI_API_KEY`를 읽어 실제 OpenAI ChatModel 기반 ReAct Agent를 실행합니다.
+- CLI 기본 질문은 한국어 calculator 예시로 구성합니다.
+- Unit test는 fake tool-calling model로 tool call, tool message, final answer loop를 검증합니다.
+- Integration test는 `RUN_EINO_INTEGRATION=1`에서만 실제 OpenAI API를 호출합니다.
+- `go test ./...`가 통과합니다.
+
+## Chapter 11 이후 로드맵
+
 - Chapter 12: GraphTool
 - Chapter 13: Human-in-the-loop
 - Chapter 14: Mini Project, DevOps Assistant
